@@ -66,6 +66,7 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
 .seg button{border:0;background:none;color:#fff;padding:8px 14px;border-radius:8px;font-weight:600;font-size:15px;min-height:40px}
 .seg button[aria-pressed="true"]{background:#fff;color:var(--navy)}
 .hero .sub{font-size:13px;opacity:.8;margin-top:8px}
+.ck{display:flex;gap:10px;align-items:center;font-size:15px;margin:10px 0;color:var(--fg)}.ob .ck input,.ck input{width:22px!important;height:22px!important;min-height:0!important;flex:0 0 22px;margin:0;accent-color:var(--blue)}
 .lines{margin-top:12px;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
 .lines>div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(255,255,255,.18);font-size:15px}
 .lines>div b{white-space:nowrap}
@@ -279,6 +280,7 @@ const VACANCES = [["2025-10-18","2025-11-02","Toussaint 2025"],["2025-12-20","20
   ["2026-10-17","2026-11-01","Toussaint 2026"],["2026-12-19","2027-01-03","Noël 2026"],["2027-02-20","2027-03-07","Hiver 2027"],
   ["2027-04-17","2027-05-02","Printemps 2027"],["2027-05-06","2027-05-09","Pont Ascension 2027"],["2027-07-03","2027-08-31","Été 2027"]];
 const DEFAULTS = {annee: new Date().getFullYear(), equipe: 3, taux: 16.58, samedi: "Jour de la nuit", gf: "", nr: "", ech: "", zone: "B", snb: 543.18, fixes: 0,
+  conduite: 1, energie: 153.28, loyer: 0, pas: 0, penible: 103.15, gratCET: 0,
   repos: 11, jour: 10, sem: 48, moy: 40, hebdo: 35, semO: 44, moyO: 38};
 
 /* ===== Grille IEG 2026 (salaire de base) : base = SNB × coef(NR)/100 × MR × A(échelon) ===== */
@@ -333,7 +335,8 @@ function compute(entries, p) {
     const base = baseOf(n, eq), code = codeOf(n, eq), fer = isFerie(n) ? 1 : 0;
     const pr = R[k - 1];
     const desc = pr && [pr.q1, pr.q2, pr.q3].includes("N") && base[0] === "J" ? 1 : 0;
-    const q1 = isF(s1) ? s1 : isF(s2) ? s2 : (isAbs(s1) || isAbs(s2) || desc) ? "" :
+    const jRempl = base[0] === "J" && (isQ(s1) || isQ(s2));   // remplacement sur une journée J : la J n'est pas faite
+    const q1 = isF(s1) ? s1 : isF(s2) ? s2 : (isAbs(s1) || isAbs(s2) || desc || jRempl) ? "" :
       (isQ(base) || base[0] === "J") ? base : "";
     const q2 = isQ(s1) ? s1 : "", q3 = isQ(s2) ? s2 : "";
     const qs = [q1, q2, q3].filter(Boolean);
@@ -426,13 +429,84 @@ function simRows(entries, p, res) {
       } else if (t === "M" || t === "A") key = t + "|" + (G === "RJ" ? "R/J" : G);
       const c = key ? COEF[key] : null;
       rows.push({n, iso, i, type: t, quart, ferie: r.fer, key, coeff: c ? c[0] : null, rc: c ? c[1] : null, hsup: c ? c[2] : null,
-        montant: c ? c[0] * p.taux : null, montantRC: c ? (c[0] + c[1]) * p.taux : null, a4: Math.max(r.nivj, r.nivs)});
+        ...(c ? (d => ({montant: d.sansRC, montantRC: d.avecRC, det: d}))(replDetail(t, key, n, r.fer, p, true)) : {montant: null, montantRC: null}), a4: Math.max(r.nivj, r.nivs)});
     });
   }
   return rows.sort((a, b) => a.n - b.n || a.i - b.i);
 }
 
-if (typeof module !== "undefined") module.exports = {compute, simRows, D, ymd, DEFAULTS, baseSalary, effParams, NRC};
+
+/* ===== Paie v8 : règles vérifiées sur 7 bulletins 2026 =====
+   Heures sup des remplacements : semaine 50 % (6h-20h) / 100 % (20h-6h) ; samedi, dimanche, férié 75 % / 125 %.
+   390 = RC (si payé) + heures à 100 % (JPTUNE) + 3,62 h fixes ; remplacement d'une journée J : RC 8 h + décalage 335 (M 1 h, A 2,25 h).
+   Fériés travaillés au roulement : 75 % (6h-20h) / 125 % (20h-6h) ; journées J chômées. Tout est payé le mois suivant. */
+const PAY = {ic10h: 172.5, ic40h: 50.5, ic10: 1.527, ic40: 6.108, ic50: 7.635, fix390: 3.62, panB: 2.11, panN: 9.0, nett: 3.40,
+  cot: 0.2124, cotHS: 0.1016, nonImp: 0.5};
+const HT = {M: [7.75, 0, 0, 0], A: [6.5, 1.25, 0, 0], N: [0, 3, 0.25, 6]};   // jour 6-20, jour 20-6, lendemain 6-20, lendemain 0-6
+function replDetail(t, key, n, fer, p, rcPaid) {
+  const c = COEF[key] || [0, 0, 0], th = +p.taux, ctxJ = key.split("|")[1][0] === "J";
+  const h = HT[t], we = wd(n) === 0 || wd(n) === 6 || fer;
+  const d = {h50: 0, h75: 0, h100: 0, h125: 0, rc: 0, h100j: c[2], dec: 0, ic50: 0};
+  if (ctxJ) { d.rc = (t === "N" ? c[1] : 8); d.dec = t === "M" ? 1 : 2.25; if (t === "A") { d.h50 = 1.75; d.h100 = 2; } }
+  else { d.rc = c[1]; if (we) { d.h75 = h[0] + h[2]; d.h125 = h[1] + h[3]; } else { d.h50 = h[0] + h[2]; d.h100 = h[1] + h[3]; } }
+  if (wd(n) === 0 || fer) d.ic50 += h[0] + h[1];
+  if (wd(n + 1) === 0 || isFerie(n + 1)) d.ic50 += h[2] + h[3];
+  const hs = d.h50 * 1.5 * th + d.h75 * 1.75 * th + d.h100 * 2 * th + d.h125 * 2.25 * th + d.dec * 1.5 * th + d.h100j * th;
+  d.sansRC = hs + d.ic50 * PAY.ic50 * 1.05;
+  d.avecRC = d.sansRC + d.rc * th;
+  d.montant = rcPaid ? d.avecRC : d.sansRC;
+  return d;
+}
+/* variables gagnées sur le mois (y, m) — payées sur la paie du mois suivant */
+function moisVariables(entries, p, res, y, m, rcPaid) {
+  const th = +p.taux, v = {h50: 0, h75: 0, h100: 0, h125: 0, h390: PAY.fix390, dec: 0, f75: 0, f125: 0, ic50h: 0, quarts: 0, nRempl: 0};
+  const first = D(y, m, 1), last = D(y, m + 1, 1) - 1;
+  const rows = simRows(entries, p, res).filter(x => x.n >= first && x.n <= last && x.key);
+  for (const x of rows) {
+    const d = replDetail(x.type, x.key, x.n, x.ferie, p, rcPaid);
+    v.h50 += d.h50; v.h75 += d.h75; v.h100 += d.h100; v.h125 += d.h125; v.dec += d.dec;
+    v.h390 += d.h100j + (rcPaid ? d.rc : 0); v.ic50h += d.ic50; v.quarts++; v.nRempl++;
+  }
+  for (let n = first; n <= last; n++) {
+    const r = res.byN.get(n); if (!r) continue;
+    const pr = res.byN.get(n - 1);
+    const sun = wd(n) === 0 || r.fer;
+    const repl = [r.q2, r.q3].filter(Boolean);
+    const roul = isQ(r.q1) ? r.q1 : "";
+    if (roul) { v.quarts++; const h = HT[roul];
+      if (r.fer) { v.f75 += h[0]; v.f125 += h[1]; }
+      if (sun) v.ic50h += h[0] + h[1]; }
+    if (pr && isQ(pr.q1) && pr.q1 === "N" && sun) { if (r.fer) { v.f75 += 0.25; v.f125 += 6; } v.ic50h += 6.25; }
+  }
+  v.hs = (v.h50 * 1.5 + v.h75 * 1.75 + v.h100 * 2 + v.h125 * 2.25 + v.dec * 1.5) * th;
+  v.e390 = v.h390 * th;
+  v.feries = (v.f75 * 1.75 + v.f125 * 2.25) * th;
+  v.ic = PAY.ic10h * PAY.ic10 + PAY.ic40h * PAY.ic40 + v.ic50h * PAY.ic50;
+  v.reval = v.ic * 0.05;
+  v.penible = +p.penible || 0;
+  v.panier = v.quarts * PAY.panB;
+  v.rempl = v.hs + v.e390 - PAY.fix390 * th;           // part due aux remplacements
+  v.hsTot = v.hs + v.e390 + v.feries;                   // heures sup. et assimilées (exonérées)
+  v.total = v.hsTot + v.ic + v.reval + v.penible + v.panier;
+  return v;
+}
+/* bulletin du mois (y, m) = fixe du mois + variables du mois précédent */
+function bulletin(entries, p, y, m, rcPaid, resCache) {
+  const pe = effParams(p);
+  const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1;
+  const res = resCache && resCache.Y === py ? resCache : compute(entries, {...pe, annee: py});
+  const v = moisVariables(entries, pe, res, py, pm, rcPaid);
+  const base = pe.base || 0, conduite = +p.conduite ? base * 0.1 : 0, energie = +p.energie || 0;
+  const fixe = base + conduite + (+p.fixes || 0) + energie;
+  const grat = m === 6 ? base / 2 : 0;                   // gratification de fin d'année (030), bulletin de juin
+  const brut = fixe + v.total + (+p.gratCET ? 0 : grat);
+  const cot = brut * PAY.cot - v.hsTot * PAY.cotHS + (+p.gratCET ? grat * 0.178 : 0);
+  const mns = brut - cot;
+  const pas = Math.max(0, mns - v.hsTot * PAY.nonImp) * (+p.pas || 0) / 100;
+  const net = mns - pas - (+p.loyer || 0) - energie + v.quarts * (PAY.panN + PAY.nett);
+  return {fixe, base, conduite, energie, grat, v, brut, cot, mns, pas, net, py, pm};
+}
+if (typeof module !== "undefined") module.exports = {compute, simRows, D, ymd, DEFAULTS, baseSalary, effParams, NRC, moisVariables, bulletin, replDetail, PAY, codeOf, isFerie, wd};
 
 </script>
 <script>
@@ -467,6 +541,8 @@ function qcol(code) {
 const chip = c => `<span class="chip" style="background:${qcol(c)}">${esc(c)}</span>`;
 let res;
 const P = () => effParams(st.p);
+const detTxt = (d, rc) => [d.h50 ? `${num(d.h50)} h à 50 %` : "", d.h75 ? `${num(d.h75)} h à 75 %` : "", d.h100 ? `${num(d.h100)} h à 100 %` : "",
+  d.h125 ? `${num(d.h125)} h à 125 %` : "", d.dec ? `décalage ${num(d.dec)} h` : "", (d.h100j || (rc && d.rc)) ? `prime ${num(d.h100j + (rc ? d.rc : 0))} h` : ""].filter(Boolean).join(" · ");
 const recompute = () => { res = compute(st.e, P()); };
 function curMonth() {
   const Y = +st.p.annee;
@@ -507,17 +583,28 @@ function renderSim() {
   const rowsM = simRows(st.e, P(), res).filter(x => x.n >= d1 && x.n <= dEndM);
   const nRemp = rowsM.filter(x => x.coeff !== null).length;
   const sum = rowsM.reduce((a, x) => a + (x.montant || 0), 0), sumRC = rowsM.reduce((a, x) => a + (x.montantRC || 0), 0);
-  const hs = rowsM.reduce((a, x) => a + (x.hsup || 0), 0);
-  const pp = P(), fixes = +st.p.fixes || 0, baseTot = pp.base !== null ? pp.base + fixes : null, rempl = st.rc ? sumRC : sum;
-  $("hero").innerHTML = `<div class="hl">${baseTot !== null ? "Salaire brut avec remplacements" : "Mes remplacements"} — ${mn}</div>
-    <div class="amt">${eur(baseTot !== null ? baseTot + rempl : rempl)}</div>
-    <div class="seg" role="group" aria-label="Type de montant"><button data-rc="0" aria-pressed="${!st.rc}">Sans RC</button><button data-rc="1" aria-pressed="${st.rc}">Avec RC</button></div>
+  const pp = P(), rcP = !!st.rc;
+  const Mn = M0 === 12 ? 1 : M0 + 1, Yn = M0 === 12 ? Y + 1 : Y, mNext = MOIS[Mn - 1];
+  const bN = bulletin(st.e, st.p, Yn, Mn, rcP, res), bC = bulletin(st.e, st.p, Y, M0, rcP, M0 === 1 ? null : res), v = bN.v;
+  const hasBase = pp.base !== null;
+  const det = [v.h50 + v.h75 + v.h100 + v.h125 ? `${num(v.h50 + v.h75 + v.h100 + v.h125)} h sup` : "", `${num(v.h390)} h prime horaire`,
+    v.f75 + v.f125 ? `${num(v.f75 + v.f125)} h férié` : "", v.dec ? `${num(v.dec)} h décalage` : ""].filter(Boolean).join(" · ");
+  $("hero").innerHTML = hasBase ? `<div class="hl">Ma paie de ${mNext} — net estimé</div>
+    <div class="amt">${eur(bN.net)}</div>
+    <div class="seg" role="group" aria-label="Repos compensateur"><button data-rc="0" aria-pressed="${!rcP}">RC en repos</button><button data-rc="1" aria-pressed="${rcP}">RC payé</button></div>
     <div class="lines">
-      <div><span>Salaire de base${fixes ? " + éléments fixes" : ""}</span><b>${baseTot !== null ? eur(baseTot) : `<button class="lk" id="setnr">Ajouter mon NR</button>`}</b></div>
-      <div><span>Remplacements (${nRemp}) ${st.rc ? "avec RC" : "sans RC"}</span><b>+ ${eur(rempl)}</b></div>
-      <div class="tl"><span>Salaire avec remplacements</span><b>${baseTot !== null ? eur(baseTot + rempl) : "—"}</b></div>
+      <div><span>Fixe de ${mNext}</span><b>${eur(bN.fixe)}</b></div>
+      <div><span>Primes de quarts de ${mn}</span><b>+ ${eur(v.total - v.rempl)}</b></div>
+      <div><span>Remplacements de ${mn} (${nRemp})</span><b>+ ${eur(v.rempl)}</b></div>
+      <div><span>Brut</span><b>${eur(bN.brut)}</b></div>
+      <div class="tl"><span>Net à payer en ${mNext}</span><b>${eur(bN.net)}</b></div>
     </div>
-    <div class="sub">${num(hs)} h sup · ${st.rc ? "sans RC : " + eur(sum) : "avec RC : " + eur(sumRC)} · montants bruts</div>`;
+    <div class="sub">Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
+  : `<div class="hl">Mes remplacements — ${mn}</div>
+    <div class="amt">${eur(rcP ? sumRC : sum)}</div>
+    <div class="seg" role="group" aria-label="Repos compensateur"><button data-rc="0" aria-pressed="${!rcP}">RC en repos</button><button data-rc="1" aria-pressed="${rcP}">RC payé</button></div>
+    <div class="lines"><div><span>Salaire et net estimé</span><b><button class="lk" id="setnr">Ajouter mon NR</button></b></div></div>
+    <div class="sub">${nRemp} remplacement${nRemp > 1 ? "s" : ""} · montants bruts payés le mois suivant</div>`;
   if ($("setnr")) $("setnr").onclick = () => openProfile(false);
   document.querySelectorAll("#hero [data-rc]").forEach(b => b.onclick = () => { st.rc = b.dataset.rc === "1"; save(); renderSim(); });
   // A4
@@ -543,7 +630,7 @@ function renderSim() {
   for (const x of rowsM) {
     const quart = x.quart === "RJ" ? "R/J" : x.quart, main = x.montant === null ? null : (st.rc ? x.montantRC : x.montant);
     L += `<button class="rw" data-n="${x.n}"><span class="dt"><b>${dayNum(x.n)}</b><small>${JS[wdN(x.n)]}</small></span>
-      <span class="mid"><span class="chips">${chip(x.type)}<span class="hint">sur ${chip(quart)}</span></span>${x.coeff !== null ? `<small>coeff ${num(x.coeff, 3)} · ${num(x.hsup)} h sup${x.ferie ? " · férié" : ""}</small>` : `<small>${x.ferie ? "férié" : "absence / formation"}</small>`}</span>
+      <span class="mid"><span class="chips">${chip(x.type)}<span class="hint">sur ${chip(quart)}</span></span>${x.det ? `<small>${detTxt(x.det, st.rc)}${x.ferie ? " · férié" : ""}</small>` : `<small>${x.ferie ? "férié" : "absence / formation"}</small>`}</span>
       <span class="m">${main !== null ? eur(main) : "—"}</span><span class="a4 l${x.a4}">${["✓","⚠","✖"][x.a4]}</span></button>`;
   }
   $("list").innerHTML = L;
@@ -612,8 +699,9 @@ function openSheet(n0) {
     const base = r.base === "R/J" ? "R/J" : r.base, [d1, d2] = win(), fr = freeDays(d1, d2);
     const chips = fr.map(f => `<button class="fd" data-n="${f.n}" aria-pressed="${f.n === n}"><b>${dayNum(f.n)}</b><small>${JS[wdN(f.n)]}</small></button>`).join("");
     let pv = "";
-    for (const x of rows) if (x.coeff !== null) pv += `<div class="pr"><span>${chip(x.type)} <span class="hint">coeff ${num(x.coeff, 3)} · ${num(x.hsup)} h sup</span></span><span class="big">${eur(x.montant)}</span></div>
-      <div class="pr"><span class="hint">Avec repos compensateur (${num(x.rc)} h)</span><b style="color:var(--rc)">${eur(x.montantRC)}</b></div>`;
+    for (const x of rows) if (x.det) pv += `<div class="pr"><span>${chip(x.type)} <span class="hint">${detTxt(x.det, false)}</span></span><span class="big">${eur(x.montant)}</span></div>
+      ${x.det.rc ? `<div class="pr"><span class="hint">RC payé (+${num(x.det.rc)} h)</span><b style="color:var(--rc)">${eur(x.montantRC)}</b></div>` : ""}
+      <div class="pr"><span class="hint">Payé sur la paie du mois suivant</span></div>`;
     const lvl = Math.max(r.nivj, r.nivs);
     const chosen = !!(s1 || s2 || hp);
     if (chosen && r.msgj) pv += `<div class="msg ${r.nivj === 2 ? "bad" : "warn"}">${esc(r.msgj)}</div>`;
@@ -671,7 +759,7 @@ const NRS = Object.keys(NRC).map(Number).sort((x, y) => x - y);
 const ZLAB = [["B", "24 % (zone B)"], ["A", "24,5 % (zone A)"], ["A+", "25 % (zone A+)"]];
 function onboarding() { openProfile(true); }
 function openProfile(first) {
-  const q = {equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: (st.p.ech ? Math.max(4, +st.p.ech) : ""), zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb};
+  const q = {equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: (st.p.ech ? Math.max(4, +st.p.ech) : ""), zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb, conduite: st.p.conduite ?? 1, energie: st.p.energie ?? 153.28, loyer: +st.p.loyer || 0, pas: +st.p.pas || 0, gratCET: +st.p.gratCET || 0};
   let anim = true;
   const draw = () => {
     const ep = effParams({...st.p, ...q}), opt = (v, cur, lab) => `<option value="${v}" ${String(cur) === String(v) ? "selected" : ""}>${lab}</option>`;
@@ -690,9 +778,16 @@ function openProfile(first) {
         : `<div class="res none">Choisis ton NR et ton échelon pour calculer ton salaire de base, ou saisis ton taux horaire :
             <input id="q-th" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.taux}" aria-label="Taux horaire" style="margin-top:8px"></div>`}
       <p class="hint">Le GF n'entre pas dans le calcul : c'est le NR et l'échelon qui fixent le salaire de base.</p>
-      <div class="lab">Autres éléments fixes (€/mois, optionnel)</div>
-      <input id="q-fx" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.fixes || ""}" placeholder="0" aria-label="Autres éléments fixes">
-      <p class="hint">Par exemple l'indemnité de service continu ou une gratification, pour coller à ta fiche de paie.</p>
+      <div class="lab">Pour estimer ton net (lignes de ta fiche de paie)</div>
+      <label class="ck"><input type="checkbox" id="q-cd" ${+q.conduite ? "checked" : ""}> Complément conduite nucléaire 10 % (005)</label>
+      <div class="pgrid">
+        <label>Autres fixes €/mois<input id="q-fx" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.fixes || ""}" placeholder="0"></label>
+        <label>Forfait énergie (058)<input id="q-en" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.energie}"></label>
+        <label>Loyer retenu (284)<input id="q-ly" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.loyer || ""}" placeholder="0"></label>
+        <label>Taux impôt (PAS %)<input id="q-pas" class="sm" type="number" inputmode="decimal" step="0.1" min="0" value="${q.pas || ""}" placeholder="0"></label>
+      </div>
+      <p class="hint">Autres fixes = total des lignes 031, 20B, 557, 612 et 060. Le forfait énergie est ajouté au brut puis repris sur le net, comme sur ta fiche.</p>
+      <label class="ck"><input type="checkbox" id="q-cet" ${+q.gratCET ? "checked" : ""}> Gratification de juin mise sur le CET</label>
       <div class="actions">${first ? "" : '<button class="btn ghost" id="qcx">Annuler</button>'}<button class="btn" id="qok">${first ? "Commencer" : "Enregistrer"}</button></div>
       ${first ? '<button class="linkbtn" id="obdemo">Voir d\'abord avec des exemples</button>' : ""}</div>`, {anim, lock: first});
     anim = false;
@@ -700,9 +795,15 @@ function openProfile(first) {
     ["gf", "nr", "ech", "zone"].forEach(k => $("q-" + k).onchange = ev => { q[k] = ev.target.value; if (k === "nr" && q.nr && !q.ech) q.ech = "4"; draw(); });
     if ($("q-th")) $("q-th").oninput = ev => { q.taux = ev.target.value; };
     $("q-fx").oninput = ev => { q.fixes = ev.target.value; };
+    $("q-cd").onchange = ev => { q.conduite = ev.target.checked ? 1 : 0; };
+    $("q-cet").onchange = ev => { q.gratCET = ev.target.checked ? 1 : 0; };
+    $("q-en").oninput = ev => { q.energie = ev.target.value; };
+    $("q-ly").oninput = ev => { q.loyer = ev.target.value; };
+    $("q-pas").oninput = ev => { q.pas = ev.target.value; };
     const fin = demo => {
       const th = parseFloat(q.taux), fx = parseFloat(q.fixes);
-      Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0});
+      Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0,
+        conduite: q.conduite, gratCET: q.gratCET, energie: Math.max(0, parseFloat(q.energie) || 0), loyer: Math.max(0, parseFloat(q.loyer) || 0), pas: Math.max(0, parseFloat(q.pas) || 0)});
       if (isFinite(th) && th > 0) st.p.taux = th;
       st.ready = true; recompute(); if (demo) loadDemo(); save(); closeLayer(); refresh(); if (!first) toast("Profil enregistré");
     };
