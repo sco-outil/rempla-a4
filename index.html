@@ -757,7 +757,7 @@ function openRange(n0) {
     const rr = compute(st.e, P()); let work = 0, off = 0, has = 0;
     for (let n = a; n <= b; n++) { const r = rr.byN.get(n); const k = iso10(n);
       if (st.e[k] && st.e[k].s1 === "C") has++;
-      if (r && ["M","A","N"].includes(r.base)) work++; else off++; }
+      if (r && /^[MANJ]/.test(r.base)) work++; else off++; }
     const tot = b - a + 1, put = onlyShift ? work : tot;
     sheet(`<h3>Congés sur plusieurs jours</h3>
       <div class="sub">C = congé : le quart prévu ce jour-là est retiré du calcul.</div>
@@ -765,8 +765,8 @@ function openRange(n0) {
       <div class="dsel"><label>${longDate(a)}<small>touche pour choisir</small><input type="date" id="ra" value="${iso10(a)}" min="${iso10(yMin)}" max="${iso10(yMax)}"></label></div>
       <div class="lab">Dernier jour</div>
       <div class="dsel"><label>${longDate(b)}<small>touche pour choisir</small><input type="date" id="rb" value="${iso10(b)}" min="${iso10(a)}" max="${iso10(yMax)}"></label></div>
-      <label class="hint" style="display:flex;gap:8px;align-items:center;margin:12px 0"><input type="checkbox" id="rs" ${onlyShift ? "checked" : ""}> Seulement mes jours de quart (M, A, N)</label>
-      <div class="preview"><div class="msg ok">${tot} jour${tot > 1 ? "s" : ""} sélectionné${tot > 1 ? "s" : ""} · <b>${put}</b> congé${put > 1 ? "s" : ""} à poser (${work} jour${work > 1 ? "s" : ""} de quart, ${off} sans quart)${has ? " · " + has + " déjà en congé" : ""}</div></div>
+      <label class="hint" style="display:flex;gap:8px;align-items:center;margin:12px 0"><input type="checkbox" id="rs" ${onlyShift ? "checked" : ""}> Seulement mes jours travaillés (M, A, N, J) — décoche pour marquer aussi R et H</label>
+      <div class="preview"><div class="msg ok">${tot} jour${tot > 1 ? "s" : ""} sélectionné${tot > 1 ? "s" : ""} · <b>${put}</b> congé${put > 1 ? "s" : ""} à poser (${work} jour${work > 1 ? "s" : ""} travaillé${work > 1 ? "s" : ""}, ${off} de repos R/H)${has ? " · " + has + " déjà en congé" : ""}</div></div>
       <div class="actions"><button class="btn ghost" id="rcx">Annuler</button>${has ? '<button class="btn danger" id="rdel">Retirer les congés</button>' : ""}<button class="btn" id="rok">Poser</button></div>`, {anim: false, lock: false});
     $("ra").onchange = ev => { const v = ev.target.value; if (v) { a = D(...v.split("-").map(Number)); if (b < a) b = a; draw(); } };
     $("rb").onchange = ev => { const v = ev.target.value; if (v) { b = D(...v.split("-").map(Number)); if (b < a) b = a; draw(); } };
@@ -778,7 +778,7 @@ function openRange(n0) {
       save(); closeLayer(); refresh(); toast("Congés retirés", "Annuler", () => { st.e = JSON.parse(bak); save(); refresh(); }); };
     $("rok").onclick = () => { const bak = snap(), rr2 = compute(st.e, P()); let k2 = 0;
       for (let n = a; n <= b; n++) { const r = rr2.byN.get(n);
-        if (onlyShift && !(r && ["M","A","N"].includes(r.base))) continue;
+        if (onlyShift && !(r && /^[MANJ]/.test(r.base))) continue;
         st.e[iso10(n)] = {s1: "C", s2: "", hp: 0}; k2++; }
       save(); closeLayer(); st.m = {y: Y, m: monN(a)}; refresh();
       toast(k2 + " jour" + (k2 > 1 ? "s" : "") + " de congé posé" + (k2 > 1 ? "s" : ""), "Annuler", () => { st.e = JSON.parse(bak); save(); refresh(); }); };
