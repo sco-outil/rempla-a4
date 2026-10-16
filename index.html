@@ -634,7 +634,8 @@ function renderSim() {
   let L = `<h2><span>Remplacements de ${mn} · montants bruts</span><span>${nRemp}</span></h2>`;
   if (!rowsM.length) L += `<div class="empty"><b>Rien de saisi en ${mn}</b>Ajoute un remplacement pour voir tout de suite le montant et le contrôle A4.<br><button class="btn" id="add1">+ Ajouter un remplacement</button></div>`;
   for (const x of rowsM) {
-    const quart = x.quart === "RJ" ? "R/J" : x.quart, main = x.montant === null ? null : x.montant;
+    const nuitTr = x.type === "N" && x.key && !x.key.endsWith("R/J") ? x.key.split("|")[1] : "";
+    const quart = nuitTr ? nuitTr.slice(0, -1) + "→" + nuitTr.slice(-1) : (x.quart === "RJ" ? "R/J" : x.quart), main = x.montant === null ? null : x.montant;
     L += `<button class="rw" data-n="${x.n}"><span class="dt"><b>${dayNum(x.n)}</b><small>${JS[wdN(x.n)]}</small></span>
       <span class="mid"><span class="chips">${chip(x.type)}<span class="hint">sur ${chip(quart)}</span></span>${x.det ? `<small>${detTxt(x.det, false)}${x.ferie ? " · férié" : ""}</small>` : `<small>${x.ferie ? "férié" : "absence / formation"}</small>`}</span>
       <span class="m">${main !== null ? eur(main) : "—"}</span><span class="a4 l${x.a4}">${["✓","⚠","✖"][x.a4]}</span></button>`;
