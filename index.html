@@ -1,0 +1,710 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Simulateur Remplacement</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SCO Rempla">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="icon" href="apple-touch-icon.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}
+
+/* Layout : appli mobile, 3 onglets en bas, bouton « + Remplacement » flottant ; une seule feuille de saisie pour tout */
+:root{
+  --bg:#EEF2F6; --surface:#FFFFFF; --line:#D5DEE8; --fg:#14263D; --muted:#5E6F84;
+  --navy:#1E3A5F; --blue:#2E75B6; --in:#FFF8E1; --onnavy:#FFFFFF;
+  --ok-bg:#DCFCE7; --ok-fg:#15803D; --warn-bg:#FFF1D6; --warn-fg:#9A5B00; --bad-bg:#FDE2E2; --bad-fg:#B71C1C;
+  --ok:#22A55A; --warn:#F59E0B; --bad:#EF4444; --money:#065F46; --rc:#8A6A00; --vac:#FFEB3B; --gold:#F5C542;
+  --pastel-ink:#1B2533;
+  --q-M:#B3E5FC; --q-A:#C8E6C9; --q-N:#FFF9C4; --q-J17:#E1BEE7; --q-J16:#FFE0B2; --q-R:#ECEFF1; --q-H:#CFD8DC; --q-RJ:#D1C4E9; --q-F:#F8BBD0; --q-X:#EF9A9A;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-cond:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1622; --surface:#16212F; --line:#2A3A4E; --fg:#E6EDF5; --muted:#9AAABD; --navy:#22436B; --blue:#4A90D0; --in:#3A3420;
+  --ok-bg:#12351F; --ok-fg:#6EE7A0; --warn-bg:#3D2E10; --warn-fg:#FBBF5A; --bad-bg:#3F1A1A; --bad-fg:#FCA5A5; --money:#5EE0A8; --rc:#E8C547; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1622; --surface:#16212F; --line:#2A3A4E; --fg:#E6EDF5; --muted:#9AAABD; --navy:#22436B; --blue:#4A90D0; --in:#3A3420;
+  --ok-bg:#12351F; --ok-fg:#6EE7A0; --warn-bg:#3D2E10; --warn-fg:#FBBF5A; --bad-bg:#3F1A1A; --bad-fg:#FCA5A5; --money:#5EE0A8; --rc:#E8C547; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--navy)}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--navy);color:var(--onnavy);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px}
+.top .row{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:1100px;margin:0 auto;min-height:48px}
+.top h1{font-family:var(--f-cond);font-size:20px;letter-spacing:.02em;margin:0;text-transform:uppercase;white-space:nowrap}
+.top .who{font-size:13px;opacity:.85;border:0;background:none;color:inherit;padding:0;text-align:left;display:block}
+.top .who.back{opacity:1;font-weight:700;text-decoration:underline}
+.mnav{display:flex;align-items:center;gap:2px}
+.mnav button.ar{background:rgba(255,255,255,.16);border:0;border-radius:10px;width:46px;height:44px;font-size:24px;color:var(--onnavy);line-height:1}
+.mnav .ml{font-family:var(--f-cond);font-weight:700;min-width:104px;text-align:center;font-size:17px;text-transform:capitalize}
+main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:14px calc(150px + env(safe-area-inset-bottom,0px))}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:flex;
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabs button{flex:1;border:0;background:none;padding:8px 4px 9px;font-family:var(--f-cond);font-weight:600;font-size:14px;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px}
+.tabs button svg{width:24px;height:24px}
+.tabs button[aria-selected="true"]{color:var(--blue)}
+.fab{position:fixed;z-index:7;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(68px + env(safe-area-inset-bottom,0px));
+  border:0;border-radius:999px;background:var(--blue);color:#fff;font-weight:700;font-size:17px;padding:0 20px 0 16px;height:54px;
+  display:flex;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(20,38,61,.35)}
+.fab b{font-size:28px;line-height:1;font-weight:500;margin-top:-2px}
+.grid2{display:grid;gap:14px}
+@media (min-width:900px){.grid2{grid-template-columns:1.1fr 1fr;align-items:start}}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+/* résumé du mois */
+.hero{background:linear-gradient(160deg,var(--navy),color-mix(in srgb,var(--navy) 70%,var(--blue)));color:#fff;border-radius:16px;padding:16px 16px 14px}
+.hero .hl{font-family:var(--f-cond);font-size:13px;letter-spacing:.07em;text-transform:uppercase;opacity:.85}
+.hero .amt{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 8px;white-space:nowrap}
+.seg{display:inline-flex;background:rgba(255,255,255,.16);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;color:#fff;padding:8px 14px;border-radius:8px;font-weight:600;font-size:15px;min-height:40px}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--navy)}
+.hero .sub{font-size:14px;opacity:.9;margin-top:10px}
+.a4card{width:100%;text-align:left;border:0;border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:34px 1fr 20px;gap:10px;align-items:center}
+.a4card.ok{background:var(--ok-bg);color:var(--ok-fg)}.a4card.warn{background:var(--warn-bg);color:var(--warn-fg)}.a4card.bad{background:var(--bad-bg);color:var(--bad-fg)}
+.a4card .ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff}
+.a4card.ok .ico{background:var(--ok)}.a4card.warn .ico{background:var(--warn)}.a4card.bad .ico{background:var(--bad)}
+.a4card b{display:block;font-size:16px}.a4card small{font-size:13.5px;opacity:.9}
+.a4card .chev{transition:transform .15s}.a4card[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.bar{display:block;height:6px;border-radius:3px;background:rgba(0,0,0,.12);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:currentColor}
+.whylist{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:-6px}
+.whylist .it{padding:10px 14px;border-top:1px solid var(--line);font-size:15px}
+.whylist .it:first-child{border-top:0}
+.whylist .it.bad{background:var(--bad-bg);color:var(--bad-fg)}.whylist .it.warn{background:var(--warn-bg);color:var(--warn-fg)}.whylist .it.ok{background:var(--ok-bg);color:var(--ok-fg)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;min-width:0}
+.card>h2{margin:0;background:var(--navy);color:var(--onnavy);font-family:var(--f-cond);font-size:15px;letter-spacing:.05em;text-transform:uppercase;padding:9px 14px;
+  display:flex;justify-content:space-between;gap:8px;text-transform:uppercase}
+.list .rw{display:grid;grid-template-columns:48px 1fr auto 32px;gap:10px;align-items:center;padding:10px 12px;width:100%;
+  border:0;border-top:1px solid var(--line);background:none;text-align:left;min-height:64px;font-variant-numeric:tabular-nums}
+.list h2+.rw{border-top:0}
+.list .rw:active{background:color-mix(in srgb,var(--blue) 10%,var(--surface))}
+.dt{display:flex;flex-direction:column;align-items:center;line-height:1.05}
+.dt b{font-size:24px}.dt small{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mid{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mid .chips{display:flex;align-items:center;gap:6px}
+.mid small{font-size:12.5px;color:var(--muted)}
+.m{text-align:right;font-weight:700;font-size:18px;color:var(--money);white-space:nowrap}
+.m small{display:block;font-weight:600;font-size:12.5px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:3px 8px;border-radius:7px;font-weight:700;font-size:14px;color:var(--pastel-ink);background:var(--q-R)}
+.a4{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-weight:700;font-size:15px}
+.a4.l0{background:var(--ok-bg);color:var(--ok-fg)}.a4.l1{background:var(--warn);color:#fff}.a4.l2{background:var(--bad);color:#fff}
+.empty{padding:22px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--fg);font-size:18px;margin-bottom:4px}
+.empty .btn{margin-top:14px}
+.btn{border:0;border-radius:12px;padding:0 18px;min-height:50px;font-weight:700;font-size:17px;background:var(--blue);color:#fff}
+.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--bad-fg);border:1px solid var(--line)}
+.btn.sm{min-height:44px;font-size:15px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line)}
+/* calendrier */
+.cal table{width:100%;border-collapse:collapse;table-layout:fixed}
+.cal{scroll-margin-top:74px}
+.cal th{background:var(--blue);color:#fff;font-family:var(--f-cond);font-size:12px;font-weight:600;padding:4px 0;text-transform:uppercase}
+.cal th.w{width:17%}
+.cal td{border:1px solid var(--line);padding:0;vertical-align:top;height:54px}
+.day{display:flex;flex-direction:column;width:100%;height:100%;border:0;padding:0;background:var(--surface);text-align:center}
+.day .n{font-size:12px;font-weight:700;color:var(--muted);padding:1px 0;line-height:1.35}
+.day .n.vac{background:var(--vac);color:#000}
+.day .n.l1{background:var(--warn);color:#fff}.day .n.l2{background:var(--bad);color:#fff}
+.day .q{flex:1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--pastel-ink);line-height:1.05;padding:1px;word-break:break-all}
+.day.today .n{outline:2px solid var(--blue);outline-offset:-2px}
+.wk{font-size:11px;text-align:center;font-variant-numeric:tabular-nums;padding:3px 1px;line-height:1.25;background:color-mix(in srgb,var(--bg) 60%,var(--surface))}
+.wk b{display:block;font-size:12px}
+.wk.l1 b{color:var(--warn-fg)}.wk.l2 b{color:var(--bad-fg)}.wk.l0 b{color:var(--ok-fg)}
+.wk small{color:var(--muted)}
+.yeargrid{display:grid;gap:14px}
+@media (min-width:760px){.yeargrid{grid-template-columns:1fr 1fr}}
+@media (min-width:1080px){.yeargrid{grid-template-columns:1fr 1fr 1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:5px;font-size:12.5px}
+.legend span{padding:4px 8px;border-radius:6px;font-weight:700;color:var(--pastel-ink)}
+/* feuille de saisie */
+.sheet-bg{position:fixed;inset:0;background:rgba(10,20,35,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px calc(16px + env(safe-area-inset-bottom,0px))}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.sheet h3{margin:0 0 2px;font-family:var(--f-cond);font-size:22px}
+.sheet .sub{color:var(--muted);font-size:14px}
+.lab{font-family:var(--f-cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.dsel{display:grid;grid-template-columns:48px 1fr 48px;gap:6px;align-items:stretch}
+.dsel button,.dsel label{border:1px solid var(--line);background:var(--surface);border-radius:12px;min-height:52px;font-size:22px}
+.dsel label{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:17px;font-weight:700;line-height:1.15}
+.dsel label small{font-weight:500;font-size:13px;color:var(--muted)}
+.dsel input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px}
+.fdrow{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.fd{flex:0 0 auto;min-width:56px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 4px;text-align:center;line-height:1.15}
+.fd b{display:block;font-size:18px}.fd small{font-size:12px;color:var(--muted);text-transform:uppercase}
+.fd[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}.fd[aria-pressed="true"] small{color:#fff}
+.tbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 4px;border-radius:14px;border:3px solid transparent;font-weight:700;font-size:26px;color:var(--pastel-ink);min-height:84px;justify-content:center}
+.tb small{font-size:12px;font-weight:600;opacity:.8}
+.tb[aria-pressed="true"]{border-color:var(--fg)}
+.tb[aria-pressed="true"]::after{content:"✓";font-size:14px}
+.picks{display:flex;flex-wrap:wrap;gap:6px}
+.pick{border:2px solid transparent;border-radius:10px;padding:0;min-width:52px;min-height:46px;font-weight:700;font-size:16px;color:var(--pastel-ink);background:var(--q-R)}
+.pick[aria-pressed="true"]{border-color:var(--fg)}
+.pick.none{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.more{width:100%;margin-top:12px;border:1px dashed var(--line);background:none;border-radius:10px;min-height:46px;color:var(--blue);font-weight:600}
+.step{display:flex;align-items:center;gap:8px}
+.step button{width:52px;height:48px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:24px;font-weight:700}
+.step output{min-width:80px;text-align:center;font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.preview{margin-top:14px;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.preview .pr{display:flex;justify-content:space-between;align-items:baseline;padding:9px 12px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;gap:10px}
+.preview .pr:first-child{border-top:0}
+.preview .pr .big{font-size:24px;font-weight:700;color:var(--money)}
+.preview .msg{padding:9px 12px;font-size:15px;border-top:1px solid var(--line)}
+.preview .msg:first-child{border-top:0}
+.preview .msg.bad{background:var(--bad-bg);color:var(--bad-fg)}.preview .msg.warn{background:var(--warn-bg);color:var(--warn-fg)}.preview .msg.ok{background:var(--ok-bg);color:var(--ok-fg)}
+.actions{display:flex;gap:8px;margin-top:14px}
+.actions .btn{flex:1}.actions .btn.ghost,.actions .btn.danger{flex:0 0 auto}
+/* paramètres */
+.form{padding:4px 14px 12px}
+.f{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.f:first-child{border-top:0}
+.f label{font-weight:600}.f label small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.f input,.f select{font:inherit;font-size:16px;font-weight:700;width:120px;min-height:44px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--in);color:var(--fg);text-align:right}
+.f select{text-align:left}
+.prose{padding:14px;font-size:15px;max-width:65ch}
+.prose ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+details.card>summary{list-style:none;cursor:pointer;background:var(--navy);color:var(--onnavy);font-family:var(--f-cond);font-size:15px;letter-spacing:.05em;text-transform:uppercase;padding:11px 14px;display:flex;justify-content:space-between}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:"▾"}
+details.card[open]>summary::after{content:"▴"}
+textarea{width:100%;min-height:110px;font:14px/1.35 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--bg);color:var(--fg)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:0 8px 0 16px;min-height:46px;display:flex;align-items:center;gap:12px;border-radius:12px;font-weight:600;z-index:30;font-size:15px;white-space:nowrap}
+.toast button{border:0;background:none;color:var(--gold);font-weight:700;padding:10px 8px;font-size:15px}
+.hint{font-size:13.5px;color:var(--muted)}
+.teams{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.teams button{min-height:52px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-size:22px;font-weight:700}
+.teams button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.ob input{font-size:22px;font-weight:700;min-height:54px;width:100%;border-radius:12px;border:1px solid var(--line);background:var(--in);color:var(--fg);padding:0 14px;text-align:center}
+.linkbtn{border:0;background:none;color:var(--blue);font-weight:600;padding:12px;width:100%;font-size:15px}
+@media (prefers-reduced-motion:no-preference){.sheet.anim{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+</style>
+</head><body>
+<header class="top"><div class="row">
+  <div class="tt"><h1 id="ttl">Remplacements</h1><button class="who" id="who"></button></div>
+  <div class="mnav" id="mnav"><button class="ar" id="mprev" aria-label="Mois précédent">‹</button><span class="ml" id="mlab"></span><button class="ar" id="mnext" aria-label="Mois suivant">›</button></div>
+</div></header>
+
+<main id="main">
+  <section id="v-sim">
+    <div class="grid2">
+      <div class="stack">
+        <div class="hero" id="hero"></div>
+        <div id="a4wrap" class="stack" style="gap:8px"></div>
+        <div class="card list" id="list"></div>
+      </div>
+      <div class="stack">
+        <div id="cals2" class="stack"></div>
+        <div class="legend" id="leg"></div>
+      </div>
+    </div>
+  </section>
+  <section id="v-cal" hidden>
+    <p class="hint" style="margin:0 0 10px">Touche un jour pour saisir un remplacement, une formation, une absence ou des heures en plus.</p>
+    <div class="yeargrid" id="year"></div>
+  </section>
+  <section id="v-par" hidden>
+    <div class="grid2">
+      <div class="stack">
+        <div class="card"><h2>Mon profil</h2><div class="form" id="form"></div></div>
+        <details class="card"><summary>Règles A4 (seuils)</summary><div class="form" id="form2"></div></details>
+      </div>
+      <div class="stack">
+        <div class="card"><h2>Installer sur l'iPhone</h2><div class="prose">
+          <ol>
+            <li>Ouvre le lien de l'appli dans <b>Safari</b>.</li>
+            <li>Touche <b>Partager</b> (carré avec une flèche vers le haut ; sous iOS 26 : « ••• » puis Partager).</li>
+            <li>Choisis <b>« Sur l'écran d'accueil »</b>, puis <b>Ajouter</b>.</li>
+          </ol>
+          <p class="hint">Sur Android : menu ⋮ de Chrome → « Ajouter à l'écran d'accueil ». Tes réglages et tes saisies restent sur ton téléphone ; chaque collègue a les siens.</p>
+        </div></div>
+        <div class="card"><h2>Sauvegarde</h2><div class="prose">
+          <p style="margin-top:0">Copie ce code pour garder tes saisies, ou colle un code pour les récupérer sur un autre téléphone.</p>
+          <textarea id="bk" aria-label="Code de sauvegarde"></textarea>
+          <div class="btnrow" style="padding:10px 0 0;border:0">
+            <button class="btn sm" id="bkcopy">Copier</button><button class="btn sm ghost" id="bkload">Charger le code collé</button>
+            <button class="btn sm danger" id="reset">Tout effacer</button>
+          </div>
+          <p class="hint" id="bkmsg"></p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<button class="fab" id="fab" aria-label="Ajouter un remplacement"><b>+</b>Remplacement</button>
+<nav class="tabs" role="tablist">
+  <button role="tab" data-v="sim" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M7 15v-4M12 15V7M17 15v-6"/></svg>Simulateur</button>
+  <button role="tab" data-v="cal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendrier</button>
+  <button role="tab" data-v="par" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Réglages</button>
+</nav>
+<div id="layer"></div>
+
+<script>
+/* ===== Moteur A4 (portage de la feuille « Journal » du fichier Excel) ===== */
+const CYCLE = ["M","M","A","A","N","N","N","R","R","R","R","R","H","H","R","R","R","J7","M","M","M","A","A","N","N","R","H","H",
+  "J8","J8","J8","J7","J7","RJ","H","R","J7","M","M","A","A","A","N","N","R","R","R","H","H"];
+const JBY = {17:"J16",36:"J16",28:"J17",29:"J17",30:"J17",31:"J17",32:"J12"};
+const OFF = {1:44,2:37,3:30,4:23,5:16,6:9,7:2};
+// début, fin (>24 = lendemain), durée comptée, heures sur le jour, heures sur le lendemain
+const SH = {M:[6,13.75,7.75,7.75,0], A:[13.5,21.25,7.75,7.75,0], N:[21,30.25,9.25,3,6.25], J17:[8,17,8,8,0],
+  J16:[8,16,8,8,0], J12:[8,12,4,4,0], F8:[8,17,8,8,0], F4:[8,12,4,4,0]};
+const COEF = { // clé : [coeff × TH, RC (h), H 100 %]
+  "M|J8":[2.275,4,0],"M|J7":[3.25,4,0],"M|R":[16.225,0,1.5],"M|H":[19.1875,7.75,1.75],"M|R/J":[16.225,0,1.5],
+  "A|J8":[3.9,4,0],"A|J7":[5.15,4,0],"A|R":[17.35,0,2],"A|H":[20.3125,7.75,2.25],"A|R/J":[17.35,0,2],
+  "N|J8J":[14,0,0],"N|J7J":[14.713,0,0],"N|J8R":[24.075,0,0],"N|J8H":[26.5125,6.25,0],"N|J7R":[24.075,0,0],
+  "N|J7H":[26.5125,6.25,0],"N|RR":[24.075,0,2],"N|RH":[26.5125,6.25,2.25],"N|RJ":[24.075,0,2],"N|HJ":[25.375,3,2.25],
+  "N|HH":[27.5625,9.25,2.25],"N|HR":[25.375,3,2.25],"N|R/J":[26.5125,6.25,2.25]};
+const VACANCES = [["2025-10-18","2025-11-02","Toussaint 2025"],["2025-12-20","2026-01-04","Noël 2025"],["2026-02-14","2026-03-01","Hiver 2026"],
+  ["2026-04-11","2026-04-26","Printemps 2026"],["2026-05-14","2026-05-17","Pont Ascension 2026"],["2026-07-04","2026-08-31","Été 2026"],
+  ["2026-10-17","2026-11-01","Toussaint 2026"],["2026-12-19","2027-01-03","Noël 2026"],["2027-02-20","2027-03-07","Hiver 2027"],
+  ["2027-04-17","2027-05-02","Printemps 2027"],["2027-05-06","2027-05-09","Pont Ascension 2027"],["2027-07-03","2027-08-31","Été 2027"]];
+const DEFAULTS = {annee: new Date().getFullYear(), equipe: 3, taux: 16.58, samedi: "Jour de la nuit",
+  repos: 11, jour: 10, sem: 48, moy: 40, hebdo: 35, semO: 44, moyO: 38};
+
+const DAY = 86400000;
+const D = (y, m, d) => Date.UTC(y, m - 1, d) / DAY;            // n° de jour (UTC)
+const ymd = n => new Date(n * DAY).toISOString().slice(0, 10);
+const parts = n => { const t = new Date(n * DAY); return [t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()]; };
+const wd = n => new Date(n * DAY).getUTCDay();                   // 0 = dimanche
+const REF = D(2025, 1, 1);
+const idxOf = (n, eq) => (((n - REF + OFF[eq]) % 49) + 49) % 49;
+const codeOf = (n, eq) => CYCLE[idxOf(n, eq)];
+function baseOf(n, eq) { const i = idxOf(n, eq), q = CYCLE[i]; return (q === "J8" || q === "J7") ? JBY[i] : (q === "RJ" ? "R/J" : q); }
+function easter(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  return D(y, Math.floor((h + l - 7 * m + 114) / 31), ((h + l - 7 * m + 114) % 31) + 1);
+}
+const HOL = new Map();
+function feries(y) {
+  if (HOL.has(y)) return HOL.get(y);
+  const e = easter(y), s = new Set([D(y,1,1), e + 1, D(y,5,1), D(y,5,8), e + 39, e + 50, D(y,7,14), D(y,8,15), D(y,11,1), D(y,11,11), D(y,12,25)]);
+  HOL.set(y, s); return s;
+}
+const isFerie = n => feries(parts(n)[0]).has(n);
+const VAC = VACANCES.map(([a, b]) => [D(...a.split("-").map(Number)), D(...b.split("-").map(Number))]);
+const isVac = n => VAC.some(([a, b]) => n >= a && n <= b);
+const lastSunPrevSat = (y, m) => { const d = D(y, m, 31); return d - wd(d) - 1; };   // samedi avant le dernier dimanche
+const isF = s => s === "F8" || s === "F4", isAbs = s => ["C","RC","HP","AM"].includes(s), isQ = s => ["M","A","N"].includes(s);
+const fx = (v, k = 2) => (Math.round(v * 10 ** k) / 10 ** k).toFixed(k).replace(".", ",");
+const nb = v => String(Math.round(v * 100) / 100).replace(".", ",");
+
+/* entries : { "2026-10-17": {s1:"M", s2:"", hp:0} } — p : paramètres */
+function compute(entries, p) {
+  const Y = +p.annee, eq = +p.equipe, FIRST = D(Y, 1, 1) - 91, N = 91 + (D(Y + 1, 1, 1) - D(Y, 1, 1)) + 10;
+  const R = [];
+  for (let k = 0; k < N; k++) {
+    const n = FIRST + k, [y] = parts(n), e = (y === Y && entries[ymd(n)]) || {};
+    let s1 = String(e.s1 || "").trim().toUpperCase(), s2 = String(e.s2 || "").trim().toUpperCase();
+    if (!s1 && s2) { s1 = s2; s2 = ""; }
+    const hp = y === Y ? (+e.hp || 0) : 0;
+    const base = baseOf(n, eq), code = codeOf(n, eq), fer = isFerie(n) ? 1 : 0;
+    const pr = R[k - 1];
+    const desc = pr && [pr.q1, pr.q2, pr.q3].includes("N") && base[0] === "J" ? 1 : 0;
+    const q1 = isF(s1) ? s1 : isF(s2) ? s2 : (isAbs(s1) || isAbs(s2) || desc) ? "" :
+      (isQ(base) || base[0] === "J") ? base : "";
+    const q2 = isQ(s1) ? s1 : "", q3 = isQ(s2) ? s2 : "";
+    const qs = [q1, q2, q3].filter(Boolean);
+    const nn = qs.filter(q => q === "N").length;
+    const [, mo] = parts(n);
+    const dst = n === lastSunPrevSat(y, 10) ? 1 : n === lastSunPrevSat(y, 3) ? -1 : 0;
+    const hj = qs.reduce((a, q) => a + SH[q][2], 0) + dst * nn + hp;
+    const deb = qs.length ? n * 24 + Math.min(...qs.map(q => SH[q][0])) : null;
+    const fin = qs.length ? n * 24 + Math.max(...qs.map(q => SH[q][1])) + hp : null;
+    let rep = null;
+    if (k >= 2 && deb !== null) {
+      const f = [R[k - 1].fin, R[k - 2].fin].filter(v => v !== null);
+      if (f.length) rep = deb - Math.max(...f);
+    }
+    const sp = [q1, q2, q3].map(q => q ? [SH[q][0], SH[q][1]] : null);
+    let g = 999;
+    for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) if (sp[i] && sp[j]) {
+      const a = sp[i], b = sp[j];
+      g = Math.min(g, Math.max(a[0], b[0]) - (a[0] <= b[0] ? a[1] : b[1]));
+    }
+    const gap = g === 999 ? null : g;
+    const pj = hp === 0 ? 0 : (fin === null ? hp : Math.max(0, Math.min(hp, 24 - (fin - hp - n * 24))));
+    const pl = hp - pj;
+    let civ = qs.reduce((a, q) => a + SH[q][3], 0) + pj;
+    if (pr) civ += [pr.q1, pr.q2, pr.q3].filter(Boolean).reduce((a, q) => a + SH[q][4], 0) + pr.dst * pr.nn + pr.pl;
+    R.push({n, k, s1, s2, hp, base, code, fer, desc, q1, q2, q3, nn, dst, hj, deb, fin, rep, gap, pj, pl, civ, sem: n - wd(n)});
+  }
+  // semaines, moyenne 12 semaines
+  const civBySem = new Map();
+  for (const r of R) civBySem.set(r.sem, (civBySem.get(r.sem) || 0) + r.civ);
+  const pre = [0]; for (const r of R) pre.push(pre[pre.length - 1] + r.civ);
+  const sumRange = (a, b) => { const i = Math.max(0, a - FIRST), j = Math.min(N - 1, b - FIRST); return j < i ? 0 : pre[j + 1] - pre[i]; };
+  for (const r of R) { r.hs = civBySem.get(r.sem); r.moy = sumRange(r.sem - 77, r.sem + 6) / 12; }
+  // repos hebdomadaire
+  for (const r of R) {
+    r.libre = 0;
+    if (r.k >= 2 && r.k < N - 1 && r.civ === 0 && !r.q1 && !r.q2 && !r.q3) {
+      const f = [R[r.k - 1].fin, R[r.k - 2].fin, 0].filter(v => v !== null);
+      const avant = r.n * 24 - Math.max(...f);
+      const dn = R[r.k + 1].deb, apres = dn === null ? 24 : dn - (r.n * 24 + 24);
+      r.libre = avant + 24 + apres >= p.hebdo ? 1 : 0;
+    }
+  }
+  const libSem = new Map();
+  for (const r of R) if (r.libre) libSem.set(r.sem, 1);
+  // niveaux + messages
+  for (const r of R) {
+    r.rhok = libSem.has(r.sem) ? 1 : 0;
+    const rep = r.rep, hpc = rep !== null && rep >= 10.75 && rep < p.repos && r.q1[0] === "J";
+    const dstc = r.hj > p.jour && r.hj - r.dst * r.nn <= p.jour && r.hj <= p.jour + 1;
+    const nq = (r.q1 ? 1 : 0) + (r.q2 ? 1 : 0) + (r.q3 ? 1 : 0);
+    const red = (rep !== null && rep < p.repos && !hpc) || (r.gap !== null && r.gap < p.repos) || (r.hj > p.jour && !dstc);
+    r.nivj = red ? 2 : (hpc || dstc || r.desc === 1 || nq > 1) ? 1 : 0;
+    r.nivs = (r.hs > p.sem || r.moy > p.moy || r.rhok === 0) ? 2 : (r.hs >= p.semO || r.moy >= p.moyO) ? 1 : 0;
+    const mj = [];
+    if (rep !== null && rep < p.repos && !hpc) mj.push(`✖ Repos ${fx(rep)}h < 11h.`);
+    if (hpc) mj.push("⚠ Repos 10h45 après A : poser HP 8h-8h15 (A4 code 10).");
+    if (r.gap !== null && r.gap < p.repos) mj.push("✖ Plusieurs quarts le même jour sans 11h de repos.");
+    if (r.hj > p.jour && !dstc) mj.push(`✖ ${nb(r.hj)}h dans la journée > 10h.`);
+    if (dstc) mj.push(`⚠ Nuit du changement d'heure : ${nb(r.hj)}h (10h + 1h habillage).`);
+    if (nq > 1 && r.hj <= p.jour) mj.push("⚠ Plusieurs quarts le même jour.");
+    if (r.desc === 1) mj.push("ℹ Descente de nuit sur J : J pointé en R.");
+    const ms = [];
+    if (r.hs > p.sem) ms.push(`✖ Semaine ${nb(r.hs)}h > 48h maxi (dim→sam).`); else if (r.hs >= p.semO) ms.push(`⚠ Semaine ${nb(r.hs)}h (proche 48h).`);
+    if (r.moy > p.moy) ms.push(`✖ Moyenne 12 sem. ${fx(r.moy, 1)}h > 40h maxi.`); else if (r.moy >= p.moyO) ms.push(`⚠ Moyenne 12 sem. ${fx(r.moy, 1)}h.`);
+    if (r.rhok === 0) ms.push("✖ Repos hebdo : pas 35h de repos consécutives avec un jour entier libre (0h-24h).");
+    r.msgj = mj.join(" "); r.msgs = ms.join(" ");
+    const joined = [r.q1, r.q2, r.q3].filter(Boolean).join("+");
+    const absent = isAbs(r.s1) ? r.s1 : isAbs(r.s2) ? r.s2 : r.desc ? "R" : r.base;
+    r.aff = (joined ? joined + (r.q2 || r.q3 ? "★" : "") : absent) + (r.hp > 0 ? ` +${nb(r.hp)}h` : "");
+  }
+  const byN = new Map(R.map(r => [r.n, r]));
+  return {R, byN, FIRST, Y};
+}
+
+/* lignes du simulateur (une par saisie M/A/N/F/absence) */
+function simRows(entries, p, res) {
+  const rows = [];
+  for (const [iso, e] of Object.entries(entries)) {
+    const n = D(...iso.split("-").map(Number)), r = res.byN.get(n);
+    if (!r || parts(n)[0] !== res.Y) continue;
+    let list = [e.s1, e.s2].map(s => String(s || "").trim().toUpperCase()).filter(Boolean);
+    list.forEach((t, i) => {
+      const code = codeOf(n, p.equipe), quart = code;
+      const G = r.fer ? "H" : (code === "J8" || code === "J7") ? code : code === "H" ? "H" : code === "RJ" ? "RJ" : "R";
+      let key = null;
+      if (t === "N") {
+        const nx = n + 1, nc = codeOf(nx, p.equipe);
+        key = G === "RJ" ? "N|R/J" : "N|" + G + (isFerie(nx) ? "H" : (nc === "J8" || nc === "J7") ? "J" : nc === "H" ? "H" : "R");
+      } else if (t === "M" || t === "A") key = t + "|" + (G === "RJ" ? "R/J" : G);
+      const c = key ? COEF[key] : null;
+      rows.push({n, iso, i, type: t, quart, ferie: r.fer, key, coeff: c ? c[0] : null, rc: c ? c[1] : null, hsup: c ? c[2] : null,
+        montant: c ? c[0] * p.taux : null, montantRC: c ? (c[0] + c[1]) * p.taux : null, a4: Math.max(r.nivj, r.nivs)});
+    });
+  }
+  return rows.sort((a, b) => a.n - b.n || a.i - b.i);
+}
+
+
+
+</script>
+<script>
+(() => {
+const KEY = "rempla-a4-v1";
+let st = {p: {...DEFAULTS}, e: {}, m: null, tab: "sim", rc: false, why: false, ready: false};
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null");
+  if (s && s.p) { st = {...st, ...s, p: {...DEFAULTS, ...s.p}}; if (s.ready === undefined) st.ready = true; } } catch (_) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (_) {} };
+const $ = id => document.getElementById(id);
+const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const JS = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+const eur = v => v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €";
+const num = (v, k = 2) => v.toLocaleString("fr-FR", {maximumFractionDigits: k});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const todayN = () => { const t = new Date(); return D(t.getFullYear(), t.getMonth() + 1, t.getDate()); };
+const iso10 = n => new Date(n * 864e5).toISOString().slice(0, 10);
+const ddmm = n => { const [y, m, d] = iso10(n).split("-"); return `${d}/${m}`; };
+const wdN = n => new Date(n * 864e5).getUTCDay();
+const dayNum = n => new Date(n * 864e5).getUTCDate();
+const monN = n => new Date(n * 864e5).getUTCMonth() + 1;
+const MABR = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const longDate = n => `${JS[wdN(n)]} ${dayNum(n)} ${MABR[monN(n) - 1]} ${parts(n)[0]}`;
+const FREE = ["R", "H", "R/J"];
+function qcol(code) {
+  const c = String(code || "");
+  if (c.includes("★")) return "var(--q-X)";
+  const k = c.split(/[ +]/)[0];
+  return ({M:"var(--q-M)",A:"var(--q-A)",N:"var(--q-N)",J17:"var(--q-J17)",J16:"var(--q-J16)",J12:"var(--q-J16)",J8:"var(--q-J17)",J7:"var(--q-J16)",
+    R:"var(--q-R)",H:"var(--q-H)","R/J":"var(--q-RJ)",RJ:"var(--q-RJ)",F8:"var(--q-F)",F4:"var(--q-F)"})[k] || "var(--q-R)";
+}
+const chip = c => `<span class="chip" style="background:${qcol(c)}">${esc(c)}</span>`;
+let res;
+const recompute = () => { res = compute(st.e, st.p); };
+function curMonth() {
+  const Y = +st.p.annee;
+  if (st.m && st.m.y === Y) return st.m.m;
+  const t = new Date(); return t.getFullYear() === Y ? t.getMonth() + 1 : 1;
+}
+const realMonth = () => { const t = new Date(); return t.getFullYear() === +st.p.annee ? t.getMonth() + 1 : 1; };
+function win() { const Y = +st.p.annee, M0 = curMonth(); return [D(Y, M0, 1), Math.min(D(Y, M0 + 2, 1) - 1, D(Y, 12, 31))]; }
+const freeDays = (d1, d2) => res.R.filter(r => r.n >= d1 && r.n <= d2 && FREE.includes(r.base));
+
+/* ---------- calendrier d'un mois ---------- */
+function monthHTML(y, m) {
+  if (m > 12) return "";
+  const first = D(y, m, 1), gs = first - wdN(first), last = D(y, m + 1, 1) - 1, tn = todayN();
+  let rows = "";
+  for (let w = 0; w < 6; w++) {
+    const ws = gs + 7 * w; if (ws > last) break;
+    let tds = "";
+    for (let c = 0; c < 7; c++) {
+      const n = ws + c;
+      if (n < first || n > last) { tds += `<td></td>`; continue; }
+      const r = res.byN.get(n), dd = dayNum(n), lv = r.nivj, vac = isVac(n);
+      const mark = lv === 2 ? " ✖" : lv === 1 ? " ⚠" : "";
+      tds += `<td><button class="day${n === tn ? " today" : ""}" data-n="${n}" aria-label="${dd} ${MOIS[m - 1]} : ${esc(r.aff)}">
+        <span class="n${lv ? " l" + lv : vac ? " vac" : ""}">${dd}${mark}${vac ? " ☀" : ""}</span>
+        <span class="q" style="background:${qcol(r.aff)}">${esc(r.aff)}</span></button></td>`;
+    }
+    const rw = res.byN.get(ws);
+    rows += `<tr>${tds}${rw ? `<td class="wk l${rw.nivs}"><b>${num(rw.hs)}h ${["✓","⚠","✖"][rw.nivs]}</b><small>moy ${num(rw.moy, 1)}</small></td>` : "<td></td>"}</tr>`;
+  }
+  return `<div class="card cal" data-mo="${m}"><h2><span>${MOIS[m - 1]} ${y}</span></h2><table>
+    <tr>${JS.map(j => `<th>${j}</th>`).join("")}<th class="w">h/sem</th></tr>${rows}</table></div>`;
+}
+
+/* ---------- vue Simulateur ---------- */
+function renderSim() {
+  const Y = +st.p.annee, M0 = curMonth(), [d1, d2] = win(), dEndM = D(Y, M0 + 1, 1) - 1, mn = MOIS[M0 - 1];
+  const rowsM = simRows(st.e, st.p, res).filter(x => x.n >= d1 && x.n <= dEndM);
+  const nRemp = rowsM.filter(x => x.coeff !== null).length;
+  const sum = rowsM.reduce((a, x) => a + (x.montant || 0), 0), sumRC = rowsM.reduce((a, x) => a + (x.montantRC || 0), 0);
+  const hs = rowsM.reduce((a, x) => a + (x.hsup || 0), 0);
+  $("hero").innerHTML = `<div class="hl">Mon gain en ${mn}</div>
+    <div class="amt">${eur(st.rc ? sumRC : sum)}</div>
+    <div class="seg" role="group" aria-label="Type de montant"><button data-rc="0" aria-pressed="${!st.rc}">Sans RC</button><button data-rc="1" aria-pressed="${st.rc}">Avec RC</button></div>
+    <div class="sub">${nRemp} remplacement${nRemp > 1 ? "s" : ""} · ${num(hs)} h sup · ${st.rc ? "sans RC : " + eur(sum) : "avec RC : " + eur(sumRC)}</div>`;
+  document.querySelectorAll("#hero [data-rc]").forEach(b => b.onclick = () => { st.rc = b.dataset.rc === "1"; save(); renderSim(); });
+  // A4
+  const inW = r => r.n >= d1 && r.n <= d2;
+  const hmax = Math.max(0, ...res.R.filter(inW).map(r => r.hs));
+  const days = res.R.filter(r => inW(r) && r.nivj > 0);
+  const weeks = res.R.filter(r => r.n >= d1 - 6 && r.n <= d2 && wdN(r.n) === 0 && r.nivs > 0);
+  const nRed = days.filter(r => r.nivj === 2).length + weeks.filter(r => r.nivs === 2).length, nAll = days.length + weeks.length;
+  const cls = nRed ? "bad" : nAll ? "warn" : "ok", ic = nRed ? "✖" : nAll ? "⚠" : "✓";
+  const ttl = nRed ? `${nRed} écart${nRed > 1 ? "s" : ""} A4 à corriger` : nAll ? `${nAll} point${nAll > 1 ? "s" : ""} à surveiller` : "Conforme au A4";
+  const pct = Math.min(100, hmax / 48 * 100);
+  let it = "";
+  for (const r of days) it += `<div class="it ${r.nivj === 2 ? "bad" : "warn"}"><b>${ddmm(r.n)}</b> : ${esc(r.msgj)}</div>`;
+  for (const r of weeks) it += `<div class="it ${r.nivs === 2 ? "bad" : "warn"}"><b>Semaine du ${ddmm(r.n)}</b> : ${esc(r.msgs)}</div>`;
+  if (!it) it = `<div class="it ok">✓ Aucun écart A4 sur ces 2 mois.</div>`;
+  $("a4wrap").innerHTML = `<button class="a4card ${cls}" id="a4tg" aria-expanded="${st.why}"><span class="ico">${ic}</span>
+    <span><b>${ttl}</b><small>Semaine la plus chargée : ${num(hmax)} h sur 48 h</small><span class="bar"><i style="width:${pct}%"></i></span></span><span class="chev">▾</span></button>
+    ${st.why ? `<div class="whylist">${it}</div>` : ""}`;
+  $("a4tg").onclick = () => { st.why = !st.why; save(); renderSim(); };
+  // liste
+  let L = `<h2><span>Remplacements de ${mn}</span><span>${nRemp}</span></h2>`;
+  if (!rowsM.length) L += `<div class="empty"><b>Rien de saisi en ${mn}</b>Ajoute un remplacement pour voir tout de suite le montant et le contrôle A4.<br><button class="btn" id="add1">+ Ajouter un remplacement</button></div>`;
+  for (const x of rowsM) {
+    const quart = x.quart === "RJ" ? "R/J" : x.quart, main = x.montant === null ? null : (st.rc ? x.montantRC : x.montant);
+    L += `<button class="rw" data-n="${x.n}"><span class="dt"><b>${dayNum(x.n)}</b><small>${JS[wdN(x.n)]}</small></span>
+      <span class="mid"><span class="chips">${chip(x.type)}<span class="hint">sur ${chip(quart)}</span></span>${x.coeff !== null ? `<small>coeff ${num(x.coeff, 3)} · ${num(x.hsup)} h sup${x.ferie ? " · férié" : ""}</small>` : `<small>${x.ferie ? "férié" : "absence / formation"}</small>`}</span>
+      <span class="m">${main !== null ? eur(main) : "—"}</span><span class="a4 l${x.a4}">${["✓","⚠","✖"][x.a4]}</span></button>`;
+  }
+  $("list").innerHTML = L;
+  if ($("add1")) $("add1").onclick = () => openSheet(defaultDay());
+  $("cals2").innerHTML = monthHTML(Y, M0) + monthHTML(Y, M0 + 1);
+  const LG = [["M","M"],["A","A"],["N","N"],["J17","J17"],["J16/J12","J16"],["R","R"],["H","H"],["R/J","R/J"],["F8/F4","F8"],["★ rempl.","M★"]];
+  $("leg").innerHTML = LG.map(([t, c]) => `<span style="background:${qcol(c)}">${t}</span>`).join("") +
+    `<span style="background:var(--vac);color:#000">☀ vacances</span><span style="background:var(--warn);color:#fff">⚠</span><span style="background:var(--bad);color:#fff">✖</span>`;
+}
+function renderYear() {
+  const Y = +st.p.annee; let h = "";
+  for (let m = 1; m <= 12; m++) h += monthHTML(Y, m);
+  $("year").innerHTML = h;
+}
+
+/* ---------- réglages ---------- */
+function renderPar() {
+  const p = st.p, yNow = new Date().getFullYear();
+  const yrs = []; for (let y = 2025; y <= Math.max(2031, yNow + 2); y++) yrs.push(y);
+  $("form").innerHTML = `
+    <div class="f"><label for="p-eq">Mon équipe<small>Rotation de 49 jours</small></label><select id="p-eq">${[1,2,3,4,5,6,7].map(i => `<option ${+p.equipe === i ? "selected" : ""}>${i}</option>`).join("")}</select></div>
+    <div class="f"><label for="p-an">Année</label><select id="p-an">${yrs.map(y => `<option ${+p.annee === y ? "selected" : ""}>${y}</option>`).join("")}</select></div>
+    <div class="f"><label for="p-th">Taux horaire (€/h)<small>Sur ta fiche de paie</small></label><input id="p-th" type="number" inputmode="decimal" step="0.01" min="0" value="${p.taux}"></div>
+    <div class="f"><label for="p-sa">Note A4 « 2,25 si R = samedi »<small>En attente de la réponse du CE</small></label><select id="p-sa">${["Jour de la nuit","Lendemain"].map(v => `<option ${p.samedi === v ? "selected" : ""}>${v}</option>`).join("")}</select></div>`;
+  const S = [["repos","Repos quotidien minimum (h)"],["jour","Durée max de travail par jour (h)"],["sem","Max heures par semaine (dim → sam)"],
+    ["moy","Moyenne max sur 12 semaines (h)"],["hebdo","Repos hebdomadaire (24h + 11h)"],["semO","Alerte orange semaine dès (h)"],["moyO","Alerte orange moyenne dès (h)"]];
+  $("form2").innerHTML = S.map(([k, l]) => `<div class="f"><label for="s-${k}">${l}</label><input id="s-${k}" type="number" inputmode="decimal" step="0.25" value="${p[k]}"></div>`).join("") +
+    `<div class="f"><span class="hint">Valeurs du A4 pointage. Ne les change que si la règle change.</span><button class="btn sm ghost" id="sdef">Valeurs A4</button></div>`;
+  const bind = (id, k, f = Number) => { $(id).onchange = ev => { const v = f(ev.target.value); if (f === Number && !isFinite(v)) return; st.p[k] = v; save(); refresh(); toast("Enregistré"); }; };
+  bind("p-eq", "equipe"); bind("p-an", "annee"); bind("p-th", "taux"); bind("p-sa", "samedi", String);
+  S.forEach(([k]) => bind("s-" + k, k));
+  $("sdef").onclick = () => { S.forEach(([k]) => st.p[k] = DEFAULTS[k]); save(); refresh(); toast("Seuils A4 remis"); };
+  $("bk").value = JSON.stringify({p: st.p, e: st.e});
+}
+
+/* ---------- feuille de saisie (une seule pour tout) ---------- */
+function closeLayer() { $("layer").innerHTML = ""; $("fab").hidden = st.tab === "par"; }
+function sheet(html, o = {}) {
+  const old = document.querySelector(".sheet"), top = old ? old.scrollTop : 0, row = document.querySelector(".fdrow"), left = row ? row.scrollLeft : 0;
+  $("layer").innerHTML = `<div class="sheet-bg" id="sbg"><div class="sheet${o.anim === false ? "" : " anim"}" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div></div>`;
+  if (!o.lock) $("sbg").onclick = ev => { if (ev.target.id === "sbg") closeLayer(); };
+  const sh = document.querySelector(".sheet"); if (o.anim === false) sh.scrollTop = top;
+  const r2 = document.querySelector(".fdrow"); if (r2) { if (o.anim === false) r2.scrollLeft = left; else { const sel = r2.querySelector('[aria-pressed="true"]'); if (sel) r2.scrollLeft = sel.offsetLeft - r2.clientWidth / 2 + sel.clientWidth / 2; } }
+  $("fab").hidden = true;
+}
+function defaultDay() {
+  const [d1, d2] = win(), t = todayN(), fr = freeDays(d1, d2);
+  return (fr.find(r => r.n >= t) || fr[0] || {n: d1}).n;
+}
+const BIG = [["M","Matin","6h – 13h45"],["A","Après-midi","13h30 – 21h15"],["N","Nuit","21h – 6h15"]];
+const OTHER = [["F8","Formation 8h"],["F4","Formation 4h"],["C","Congé"],["RC","Repos comp."],["HP","Heure perso"],["AM","Maladie"]];
+function openSheet(n0) {
+  const Y = +st.p.annee, yMin = D(Y, 1, 1), yMax = D(Y, 12, 31);
+  let n = Math.min(Math.max(n0, yMin), yMax), s1, s2, hp, more, existed, first = true;
+  const load = () => { const c = st.e[iso10(n)] || {}; s1 = String(c.s1 || ""); s2 = String(c.s2 || ""); hp = +c.hp || 0; existed = !!(c.s1 || c.s2 || c.hp);
+    more = !!(s2 || hp || (s1 && !["M","A","N"].includes(s1))); };
+  load();
+  const setDay = v => { n = Math.min(Math.max(v, yMin), yMax); load(); draw(); };
+  const draw = () => {
+    const tmp = {...st.e}; if (s1 || s2 || hp) tmp[iso10(n)] = {s1, s2, hp}; else delete tmp[iso10(n)];
+    const rr = compute(tmp, st.p), r = rr.byN.get(n), rows = simRows(tmp, st.p, rr).filter(x => x.n === n);
+    const base = r.base === "R/J" ? "R/J" : r.base, [d1, d2] = win(), fr = freeDays(d1, d2);
+    const chips = fr.map(f => `<button class="fd" data-n="${f.n}" aria-pressed="${f.n === n}"><b>${dayNum(f.n)}</b><small>${JS[wdN(f.n)]}</small></button>`).join("");
+    let pv = "";
+    for (const x of rows) if (x.coeff !== null) pv += `<div class="pr"><span>${chip(x.type)} <span class="hint">coeff ${num(x.coeff, 3)} · ${num(x.hsup)} h sup</span></span><span class="big">${eur(x.montant)}</span></div>
+      <div class="pr"><span class="hint">Avec repos compensateur (${num(x.rc)} h)</span><b style="color:var(--rc)">${eur(x.montantRC)}</b></div>`;
+    const lvl = Math.max(r.nivj, r.nivs);
+    const chosen = !!(s1 || s2 || hp);
+    if (chosen && r.msgj) pv += `<div class="msg ${r.nivj === 2 ? "bad" : "warn"}">${esc(r.msgj)}</div>`;
+    if (chosen && r.msgs) pv += `<div class="msg ${r.nivs === 2 ? "bad" : "warn"}">Semaine : ${esc(r.msgs)}</div>`;
+    if (!lvl && (s1 || s2 || hp)) pv += `<div class="msg ok">✓ Conforme au A4 · semaine ${num(r.hs)} h, moyenne ${num(r.moy, 1)} h</div>`;
+    if (!pv) pv = `<div class="msg" style="color:var(--muted)">Choisis le type de remplacement : le montant et le contrôle A4 s'affichent ici.</div>`;
+    const bigBtns = BIG.map(([c, l, h]) => `<button class="tb" data-s1="${c}" aria-pressed="${s1 === c}" style="background:${qcol(c)}">${c}<small>${l}<br>${h}</small></button>`).join("");
+    const pk = (cur, key) => {
+      const opts = key === "s1" ? OTHER.map(o => o[0]) : ["M", "A", "N", "F4"];
+      return `<div class="picks">` + (key === "s2" ? `<button class="pick none" data-s2="" aria-pressed="${!cur}">Aucun</button>` : "") +
+        opts.map(c => `<button class="pick" data-${key}="${c}" aria-pressed="${cur === c}" style="background:${qcol(["C","RC","HP","AM"].includes(c) ? "R" : c)}">${c}</button>`).join("") + `</div>`;
+    };
+    const moreHTML = more ? `
+      <div class="lab">Formation ou absence</div>${pk(s1, "s1")}
+      <div class="lab">2e événement le même jour</div>${pk(s2, "s2")}
+      <div class="lab">Heures en plus (prolongation)</div>
+      <div class="step"><button id="hm" aria-label="Moins 15 minutes">−</button><output id="hv">${num(hp)} h</output><button id="hpl" aria-label="Plus 15 minutes">+</button></div>`
+      : `<button class="more" id="more">Plus d'options : formation, absence, 2e événement, heures en plus</button>`;
+    const canSave = s1 || s2 || hp;
+    sheet(`<h3>${existed ? "Modifier" : "Nouveau"} remplacement</h3>
+      <div class="sub">Quart prévu ce jour : ${chip(base)}${r.fer ? " · jour férié" : ""}${isVac(n) ? " · vacances scolaires ☀" : ""}</div>
+      <div class="lab">Jour</div>
+      <div class="dsel"><button id="dprev" aria-label="Jour précédent">‹</button>
+        <label>${longDate(n)}<small>touche pour choisir une date</small><input type="date" id="dpick" value="${iso10(n)}" min="${iso10(yMin)}" max="${iso10(yMax)}"></label>
+        <button id="dnext" aria-label="Jour suivant">›</button></div>
+      <div class="lab">Mes jours sans quart</div><div class="fdrow">${chips || '<span class="hint">Aucun sur ces 2 mois.</span>'}</div>
+      <div class="lab">Remplacement</div><div class="tbs">${bigBtns}</div>
+      ${moreHTML}
+      <div class="preview">${pv}</div>
+      <div class="actions"><button class="btn ghost" id="cx">Annuler</button>${existed ? '<button class="btn danger" id="del">Effacer</button>' : ""}
+        <button class="btn" id="ok">${canSave ? "Enregistrer" : "Fermer"}</button></div>`, {anim: first, lock: false});
+    first = false;
+    const on = (sel, f) => document.querySelectorAll(sel).forEach(b => b.onclick = () => f(b));
+    on(".fd", b => setDay(+b.dataset.n));
+    on(".tb", b => { s1 = s1 === b.dataset.s1 ? "" : b.dataset.s1; draw(); });
+    on("[data-s1].pick", b => { s1 = s1 === b.dataset.s1 ? "" : b.dataset.s1; draw(); });
+    on("[data-s2].pick", b => { s2 = b.dataset.s2; draw(); });
+    $("dprev").onclick = () => setDay(n - 1); $("dnext").onclick = () => setDay(n + 1);
+    $("dpick").onchange = ev => { const v = ev.target.value; if (v) setDay(D(...v.split("-").map(Number))); };
+    if ($("more")) $("more").onclick = () => { more = true; draw(); };
+    if ($("hm")) { $("hm").onclick = () => { hp = Math.max(0, hp - .25); draw(); }; $("hpl").onclick = () => { hp = Math.min(8, hp + .25); draw(); }; }
+    $("cx").onclick = closeLayer;
+    if ($("del")) $("del").onclick = () => { const k = iso10(n), bak = st.e[k]; delete st.e[k]; save(); closeLayer(); refresh();
+      toast("Remplacement effacé", "Annuler", () => { st.e[k] = bak; save(); refresh(); }); };
+    $("ok").onclick = () => { if (!canSave) { closeLayer(); return; }
+      st.e[iso10(n)] = {s1, s2, hp}; save(); closeLayer();
+      const mm = monN(n); if (mm < curMonth() || mm > curMonth() + 1) st.m = {y: Y, m: mm};
+      refresh(); toast("Enregistré"); };
+  };
+  draw();
+}
+
+/* ---------- premier lancement ---------- */
+function onboarding() {
+  let eq = +st.p.equipe || 3, th = st.p.taux;
+  const draw = () => {
+    sheet(`<div class="ob"><h3>Bienvenue</h3><div class="sub">Deux réglages pour commencer. Tu pourras les changer dans Réglages.</div>
+      <div class="lab">Mon équipe</div><div class="teams">${[1,2,3,4,5,6,7].map(i => `<button data-t="${i}" aria-pressed="${eq === i}">${i}</button>`).join("")}</div>
+      <div class="lab">Mon taux horaire (€/h)</div><input id="obth" type="number" inputmode="decimal" step="0.01" min="0" value="${th}" aria-label="Taux horaire">
+      <p class="hint">Il est sur ta fiche de paie. Tes données restent sur ce téléphone.</p>
+      <div class="actions"><button class="btn" id="obgo">Commencer</button></div>
+      <button class="linkbtn" id="obdemo">Voir d'abord avec des exemples</button></div>`, {anim: false, lock: true});
+    document.querySelectorAll(".teams button").forEach(b => b.onclick = () => { th = $("obth").value; eq = +b.dataset.t; draw(); });
+    const fin = demo => { st.p.equipe = eq; const v = parseFloat($("obth").value); if (isFinite(v) && v > 0) st.p.taux = v; st.ready = true;
+      recompute(); if (demo) loadDemo(); save(); closeLayer(); refresh(); };
+    $("obgo").onclick = () => fin(false); $("obdemo").onclick = () => fin(true);
+  };
+  draw();
+}
+function loadDemo() {
+  const M0 = curMonth(), Y = +st.p.annee, types = ["M", "N", "A", "M"];
+  const free = res.R.filter(r => parts(r.n)[0] === Y && monN(r.n) === M0 && FREE.includes(r.base)).filter((_, i) => i % 3 === 0).slice(0, 4);
+  st.e = {}; free.forEach((r, i) => st.e[iso10(r.n)] = {s1: types[i]});
+}
+
+let tt;
+function toast(t, label, fn) {
+  clearTimeout(tt); document.querySelector(".toast")?.remove();
+  const el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); el.textContent = t;
+  if (label) { const b = document.createElement("button"); b.textContent = label; b.onclick = () => { el.remove(); fn(); }; el.appendChild(b); }
+  document.body.appendChild(el); tt = setTimeout(() => el.remove(), label ? 5000 : 1800);
+}
+
+/* ---------- navigation ---------- */
+function refresh() {
+  recompute();
+  const M0 = curMonth();
+  $("mlab").textContent = MOIS[M0 - 1] + " " + st.p.annee;
+  const away = st.tab === "sim" && M0 !== realMonth();
+  $("who").textContent = away ? "↺ Revenir à ce mois-ci" : `Équipe ${st.p.equipe} · ${st.p.annee} · ${num(+st.p.taux)} €/h`;
+  $("who").className = "who" + (away ? " back" : "");
+  $("who").onclick = away ? () => { st.m = null; save(); refresh(); } : null;
+  $("mnav").hidden = st.tab !== "sim";
+  $("ttl").textContent = {sim: "Remplacements", cal: "Calendrier " + st.p.annee, par: "Réglages"}[st.tab];
+  ["sim", "cal", "par"].forEach(v => $("v-" + v).hidden = st.tab !== v);
+  $("fab").hidden = st.tab === "par" || !!document.querySelector(".sheet");
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === st.tab));
+  if (st.tab === "sim") renderSim(); else if (st.tab === "cal") renderYear(); else renderPar();
+}
+function goTab(v) {
+  st.tab = v; save(); refresh(); window.scrollTo(0, 0);
+  if (v === "cal") { const c = document.querySelector(`#year [data-mo="${curMonth()}"]`); if (c) c.scrollIntoView({block: "start"}); }
+}
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => goTab(b.dataset.v));
+const step = d => { const m = curMonth() + d; if (m >= 1 && m <= 12) { st.m = {y: +st.p.annee, m}; save(); refresh(); } };
+$("mprev").onclick = () => step(-1); $("mnext").onclick = () => step(1);
+$("fab").onclick = () => openSheet(defaultDay());
+document.addEventListener("click", ev => { const b = ev.target.closest("button.day, button.rw"); if (b) openSheet(+b.dataset.n); });
+let tx = 0, ty = 0;
+$("main").addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive: true});
+$("main").addEventListener("touchend", e => { if (st.tab !== "sim" || document.querySelector(".sheet")) return;
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > 70 && Math.abs(dy) < 40) step(dx < 0 ? 1 : -1); }, {passive: true});
+$("bkcopy").onclick = () => { const t = $("bk").value; navigator.clipboard?.writeText(t).then(() => toast("Code copié"), () => { $("bk").select(); $("bkmsg").textContent = "Sélectionne le texte et copie-le."; }); };
+$("bkload").onclick = () => {
+  try { const o = JSON.parse($("bk").value); if (!o || !o.p || !o.e) throw 0; st.p = {...DEFAULTS, ...o.p}; st.e = o.e; st.ready = true; save(); refresh(); toast("Sauvegarde chargée"); }
+  catch (_) { $("bkmsg").textContent = "Ce code n'est pas valide. Colle le texte copié en entier."; }
+};
+let armed = false;
+$("reset").onclick = ev => {
+  if (!armed) { armed = true; ev.target.textContent = "Confirmer : tout effacer"; setTimeout(() => { armed = false; ev.target.textContent = "Tout effacer"; }, 4000); return; }
+  st = {p: {...DEFAULTS}, e: {}, m: null, tab: "sim", rc: false, why: false, ready: false}; save(); refresh(); onboarding();
+};
+refresh();
+if (!st.ready) onboarding();
+})();
+</script>
+</body></html>
