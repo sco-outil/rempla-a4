@@ -90,7 +90,7 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
 .whylist .it{padding:10px 14px;border-top:1px solid var(--line);font-size:15px}
 .whylist .it:first-child{border-top:0}
 .whylist .it.bad{background:var(--bad-bg);color:var(--bad-fg)}.whylist .it.warn{background:var(--warn-bg);color:var(--warn-fg)}.whylist .it.ok{background:var(--ok-bg);color:var(--ok-fg)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;min-width:0}
+.rw2,.lines2>div{display:flex;justify-content:space-between;gap:10px;padding:9px 16px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}.rw2 .d{flex:1;color:var(--muted);font-size:13px;text-align:right}.lines2 .big{font-weight:700;font-size:16px;background:color-mix(in srgb,var(--blue) 8%,transparent)}.rw2 b,.lines2 b{white-space:nowrap}.rw2{display:flex}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;min-width:0}
 .card>h2{margin:0;background:var(--navy);color:var(--onnavy);font-family:var(--f-cond);font-size:15px;letter-spacing:.05em;text-transform:uppercase;padding:9px 14px;
   display:flex;justify-content:space-between;gap:8px;text-transform:uppercase}
 .list .rw{display:grid;grid-template-columns:48px 1fr auto 32px;gap:10px;align-items:center;padding:10px 12px;width:100%;
@@ -223,6 +223,7 @@ textarea{width:100%;min-height:110px;font:14px/1.35 ui-monospace,Menlo,monospace
     <p class="hint" style="margin:0 0 10px">Touche un jour pour saisir un remplacement, une formation, une absence ou des heures en plus.</p>
     <div class="yeargrid" id="year"></div>
   </section>
+  <section id="v-bil" hidden><div class="stack" id="bilan"></div></section>
   <section id="v-par" hidden>
     <div class="grid2">
       <div class="stack">
@@ -256,6 +257,7 @@ textarea{width:100%;min-height:110px;font:14px/1.35 ui-monospace,Menlo,monospace
 <nav class="tabs" role="tablist">
   <button role="tab" data-v="sim" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M7 15v-4M12 15V7M17 15v-6"/></svg>Simulateur</button>
   <button role="tab" data-v="cal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendrier</button>
+  <button role="tab" data-v="bil" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Bilan</button>
   <button role="tab" data-v="par" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Réglages</button>
 </nav>
 <div id="layer"></div>
@@ -526,7 +528,47 @@ function bulletin(entries, p, y, m, rcPaid, resCache) {
   const net = mns - pas - (+p.loyer || 0) - energie + v.quarts * (PAY.panN + PAY.nett);
   return {fixe, base, conduite, energie, grat, v, brut, cot, mns, pas, net, py, pm};
 }
-if (typeof module !== "undefined") module.exports = {echAt, compute, simRows, D, ymd, DEFAULTS, baseSalary, effParams, NRC, moisVariables, bulletin, replDetail, PAY, codeOf, isFerie, wd};
+
+/* ===== Bilan annuel et estimation de l'impôt sur le revenu =====
+   Net imposable d'un mois ≈ net social + CSG/CRDS non déductible (≈ 2,85 % du brut) − heures sup. défiscalisées (≈ 93,3 % des HS).
+   Calé sur 6 bulletins 2026 (écart moyen ≈ 100 €/mois hors prime exceptionnelle). Barème : revenus 2025 (déclaration 2026). */
+const IR = {tr: [[11600, 0], [29579, .11], [84577, .30], [181917, .41], [Infinity, .45]], qf: 1807, decS: [1982, 897], decC: [3277, 1483],
+  abMin: 504, abMax: 14426, hsCap: 7500, nd: 0.9825 * 0.029, hsNet: 0.933};
+function irPart(r) { let t = 0, lo = 0; for (const [hi, tx] of IR.tr) { if (r > lo) t += (Math.min(r, hi) - lo) * tx; lo = hi; } return t; }
+function irTmi(r) { for (const [hi, tx] of IR.tr) if (r <= hi) return tx; return .45; }
+function impotRevenu(x) {
+  const n = +x.parts || 0; if (!n) return null;
+  const ab = s => s > 0 ? Math.min(s, Math.min(IR.abMax, Math.max(IR.abMin, s * 0.10))) : 0;
+  const s1 = Math.max(0, +x.sal1 || 0), s2 = Math.max(0, +x.sal2 || 0), au = +x.autres || 0, ch = +x.charges || 0;
+  const rev = Math.max(0, s1 - ab(s1) + s2 - ab(s2) + au - ch);
+  const brutN = irPart(rev / n) * n;
+  const base = n >= 2 ? 2 : 1, brutB = irPart(rev / base) * base;
+  const avantage = Math.max(0, brutB - brutN), plafond = Math.max(0, n - base) * 2 * IR.qf;
+  const avUtile = Math.min(avantage, plafond), brut = brutB - avUtile;
+  const [seuil, coef] = base === 2 ? IR.decC : IR.decS;
+  const decote = brut < seuil ? Math.max(0, Math.min(brut, coef - 0.4525 * brut)) : 0;
+  const cred = +x.credits || 0, impot = brut - decote - cred;
+  return {parts: n, rev, abat: ab(s1) + ab(s2), brut, decote, credits: cred, impot, tmi: irTmi(rev / n), quotient: rev / n,
+    plafonne: avantage > plafond, taux: (s1 + s2 + au) > 0 ? impot / (s1 + s2 + au) : 0};
+}
+function bilanAnnee(entries, p, Y, rcPaid) {
+  const rows = []; let raw = 0, hsd = 0, pas = 0, known = 0, knownPas = 0;
+  const ck = +p.impCumul > 0 ? Math.min(12, Math.max(1, +p.impCumulMois || 0)) : 0;
+  for (let m = 1; m <= 12; m++) {
+    const b = bulletin(entries, p, Y, m, rcPaid), s = bulletin({}, p, Y, m, false);
+    if (!isFinite(b.net)) return null;
+    const imp = b.mns + IR.nd * b.brut, hs = b.v.hs * IR.hsNet;
+    rows.push({m, net: b.net, plan: s.net, extra: b.net - s.net, brut: b.brut, imp, hs, pas: b.pas, py: b.pm});
+    if (ck && m <= ck) { /* mois déjà payés : on prend le cumul réel */ } else { raw += imp; hsd += hs; pas += b.pas; }
+  }
+  if (ck) { known = +p.impCumul; knownPas = known * (+p.pas || 0) / 100; }
+  const sal1 = ck ? known + raw - hsd : raw - Math.min(hsd, IR.hsCap);
+  const tot = rows.reduce((a, r) => ({net: a.net + r.net, plan: a.plan + r.plan, extra: a.extra + r.extra, brut: a.brut + r.brut}), {net: 0, plan: 0, extra: 0, brut: 0});
+  const ir = impotRevenu({parts: p.parts, sal1, sal2: p.impConj, autres: p.impAutres, charges: p.impCharges, credits: p.impCredits});
+  const pasTot = pas + knownPas;
+  return {rows, tot, sal1, pas: pasTot, ir, solde: ir ? ir.impot - pasTot : null, ck};
+}
+if (typeof module !== "undefined") module.exports = {impotRevenu, bilanAnnee, IR, echAt, compute, simRows, D, ymd, DEFAULTS, baseSalary, effParams, NRC, moisVariables, bulletin, replDetail, PAY, codeOf, isFerie, wd};
 
 </script>
 <script>
@@ -780,7 +822,7 @@ const NRS = Object.keys(NRC).map(Number).sort((x, y) => x - y);
 const ZLAB = [["B", "24 % (zone B)"], ["A", "24,5 % (zone A)"], ["A+", "25 % (zone A+)"]];
 function onboarding() { openProfile(true); }
 function openProfile(first) {
-  const q = {echNext: st.p.echNext || "", equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: (st.p.ech ? Math.max(4, +st.p.ech) : ""), zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb, conduite: st.p.conduite ?? 1, energie: st.p.energie ?? 153.28, loyer: +st.p.loyer || 0, pas: +st.p.pas || 0, gratCET: +st.p.gratCET || 0};
+  const q = {parts: st.p.parts || "", impConj: st.p.impConj || "", impAutres: st.p.impAutres || "", impCharges: st.p.impCharges || "", impCredits: st.p.impCredits || "", impCumul: st.p.impCumul || "", impCumulMois: st.p.impCumulMois || "", echNext: st.p.echNext || "", equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: (st.p.ech ? Math.max(4, +st.p.ech) : ""), zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb, conduite: st.p.conduite ?? 1, energie: st.p.energie ?? 153.28, loyer: +st.p.loyer || 0, pas: +st.p.pas || 0, gratCET: +st.p.gratCET || 0};
   let anim = true;
   const draw = () => {
     const ep = effParams({...st.p, ...q}), opt = (v, cur, lab) => `<option value="${v}" ${String(cur) === String(v) ? "selected" : ""}>${lab}</option>`;
@@ -810,6 +852,17 @@ function openProfile(first) {
         <label>Taux impôt (PAS %)<input id="q-pas" class="sm" type="number" inputmode="decimal" step="0.1" min="0" value="${q.pas || ""}" placeholder="0"></label>
       </div>
       <p class="hint">Autres fixes = total des lignes 031, 20B, 557, 612 et 060. Le forfait énergie est ajouté au brut puis repris sur le net, comme sur ta fiche.</p>
+      <div class="lab">Impôt sur le revenu (pour le bilan de l'année)</div>
+      <div class="pgrid">
+        <label>Parts fiscales<select id="q-parts">${opt("", q.parts, "—")}${[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map(v => opt(v, q.parts, String(v).replace(".", ",") + " part" + (v > 1 ? "s" : ""))).join("")}</select></label>
+        <label>Net imposable conjoint (€/an)<input id="q-conj" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impConj || ""}" placeholder="0"></label>
+        <label>Autres revenus nets (€/an)<input id="q-aut" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impAutres || ""}" placeholder="0"></label>
+        <label>Charges déductibles (€/an)<input id="q-chg" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impCharges || ""}" placeholder="0"></label>
+        <label>Réductions / crédits d'impôt (€/an)<input id="q-cred" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impCredits || ""}" placeholder="0"></label>
+        <label>Cumul net imposable de ma dernière fiche (€)<input id="q-cum" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.impCumul || ""}" placeholder="facultatif"></label>
+        <label>… arrêté à la paie de<select id="q-cumm">${opt("", q.impCumulMois, "—")}${MOIS.map((n, i) => opt(i + 1, q.impCumulMois, n)).join("")}</select></label>
+      </div>
+      <p class="hint">Parts : couple 2, +0,5 par enfant (le 3e compte 1). Conjoint : son « revenu net imposable » annuel. Charges : pensions versées, dons, etc. Crédits : garde d'enfant, emploi à domicile… Le cumul se lit en bas de ta fiche de paie (« Revenu net imposable », colonne annuelle).</p>
       <label class="ck"><input type="checkbox" id="q-cet" ${+q.gratCET ? "checked" : ""}> Gratification de juin mise sur le CET</label>
       <div class="actions">${first ? "" : '<button class="btn ghost" id="qcx">Annuler</button>'}<button class="btn" id="qok">${first ? "Commencer" : "Enregistrer"}</button></div>
       ${first ? '<button class="linkbtn" id="obdemo">Voir d\'abord avec des exemples</button>' : ""}</div>`, {anim, lock: first});
@@ -818,6 +871,13 @@ function openProfile(first) {
     ["gf", "nr", "ech", "zone"].forEach(k => $("q-" + k).onchange = ev => { q[k] = ev.target.value; if (k === "nr" && q.nr && !q.ech) q.ech = "4"; draw(); });
     if ($("q-th")) $("q-th").oninput = ev => { q.taux = ev.target.value; };
     $("q-fx").oninput = ev => { q.fixes = ev.target.value; };
+    $("q-parts").onchange = ev => { q.parts = ev.target.value; };
+    $("q-conj").oninput = ev => { q.impConj = ev.target.value; };
+    $("q-aut").oninput = ev => { q.impAutres = ev.target.value; };
+    $("q-chg").oninput = ev => { q.impCharges = ev.target.value; };
+    $("q-cred").oninput = ev => { q.impCredits = ev.target.value; };
+    $("q-cum").oninput = ev => { q.impCumul = ev.target.value; };
+    $("q-cumm").onchange = ev => { q.impCumulMois = ev.target.value; };
     $("q-en2").onchange = ev => { q.echNext = ev.target.value; };
     $("q-cd").onchange = ev => { q.conduite = ev.target.checked ? 1 : 0; };
     $("q-cet").onchange = ev => { q.gratCET = ev.target.checked ? 1 : 0; };
@@ -826,7 +886,7 @@ function openProfile(first) {
     $("q-pas").oninput = ev => { q.pas = ev.target.value; };
     const fin = demo => {
       const th = parseFloat(q.taux), fx = parseFloat(q.fixes);
-      Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, echNext: q.echNext || "", zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0,
+      Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, echNext: q.echNext || "", parts: q.parts || "", impConj: Math.max(0, parseFloat(q.impConj) || 0), impAutres: Math.max(0, parseFloat(q.impAutres) || 0), impCharges: Math.max(0, parseFloat(q.impCharges) || 0), impCredits: Math.max(0, parseFloat(q.impCredits) || 0), impCumul: Math.max(0, parseFloat(q.impCumul) || 0), impCumulMois: q.impCumulMois || "", zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0,
         conduite: q.conduite, gratCET: q.gratCET, energie: Math.max(0, parseFloat(q.energie) || 0), loyer: Math.max(0, parseFloat(q.loyer) || 0), pas: Math.max(0, parseFloat(q.pas) || 0)});
       if (isFinite(th) && th > 0) st.p.taux = th;
       st.ready = true; recompute(); if (demo) loadDemo(); save(); closeLayer(); refresh(); if (!first) toast("Profil enregistré");
@@ -851,6 +911,46 @@ function toast(t, label, fn) {
   document.body.appendChild(el); tt = setTimeout(() => el.remove(), label ? 5000 : 1800);
 }
 
+
+/* ---------- bilan de l'année + impôt ---------- */
+function renderBil() {
+  const Y = +st.p.annee, pe = effParams(st.p, Y, 1);
+  const b = pe.base !== null ? bilanAnnee(st.e, st.p, Y, !!st.rc) : null;
+  const nav = `<div class="card"><h2><span>Bilan ${Y} · paies de janvier à décembre</span></h2>
+    <div class="btnrow" style="justify-content:space-between;border:0"><button class="btn sm ghost" id="bprev" aria-label="Année précédente">‹ ${Y - 1}</button><button class="btn sm ghost" id="bnext" aria-label="Année suivante">${Y + 1} ›</button></div></div>`;
+  if (!b) { $("bilan").innerHTML = nav + `<div class="card"><div class="empty"><b>Profil incomplet</b>Renseigne ton NR et ton échelon (Réglages → Modifier) pour calculer le bilan.<br><button class="btn" id="bset">Ouvrir mon profil</button></div></div>`; }
+  else {
+    const rows = b.rows.map(r => `<div class="rw2"><span>${MOIS[r.m - 1]}</span><span class="d">${r.extra > 0.5 ? "+ " + eur(r.extra) + " remplac." : "planning seul"}</span><b>${eur(r.net)}</b></div>`).join("");
+    const ir = b.ir;
+    const irHTML = !ir ? `<div class="empty"><b>Parts fiscales non renseignées</b>Ajoute ton nombre de parts, le revenu de ton conjoint et tes crédits d'impôt pour estimer l'impôt.<br><button class="btn" id="bset">Régler mes parts fiscales</button></div>`
+      : `<div class="lines2">
+        <div><span>Net imposable de l'année (mes fiches)</span><b>${eur(b.sal1)}</b></div>
+        <div><span>Abattement de 10 % (min. 504 €, max. 14 426 €)</span><b>− ${eur(ir.abat)}</b></div>
+        ${+st.p.impConj ? `<div><span>Revenu du conjoint</span><b>${eur(+st.p.impConj)}</b></div>` : ""}
+        <div><span>Revenu imposable du foyer</span><b>${eur(ir.rev)}</b></div>
+        <div><span>Parts · revenu par part</span><b>${num(ir.parts)} · ${eur(ir.quotient)}</b></div>
+        <div><span>Impôt avant décote${ir.plafonne ? " (quotient familial plafonné)" : ""}</span><b>${eur(ir.brut)}</b></div>
+        ${ir.decote > 0 ? `<div><span>Décote</span><b>− ${eur(ir.decote)}</b></div>` : ""}
+        ${ir.credits ? `<div><span>Réductions et crédits d'impôt</span><b>− ${eur(ir.credits)}</b></div>` : ""}
+        <div class="big"><span>Impôt estimé sur l'année</span><b>${eur(ir.impot)}</b></div>
+        <div><span>Prélevé à la source (PAS ${num(+st.p.pas || 0)} %)</span><b>${eur(b.pas)}</b></div>
+        <div class="big"><span>${b.solde >= 0 ? "Reste à payer" : "À rembourser"}</span><b>${eur(Math.abs(b.solde))}</b></div>
+        <div><span>Taux moyen · tranche marginale</span><b>${num(ir.taux * 100)} % · ${Math.round(ir.tmi * 100)} %</b></div>
+      </div>`;
+    $("bilan").innerHTML = nav + `<div class="card"><h2><span>Salaire net</span><span>${eur(b.tot.net)}</span></h2><div class="lines2">${rows}
+      <div class="big"><span>Total net payé (avec remplacements)</span><b>${eur(b.tot.net)}</b></div>
+      <div><span>dont planning de l'équipe</span><b>${eur(b.tot.plan)}</b></div>
+      <div><span>dont remplacements et heures en plus</span><b>+ ${eur(b.tot.extra)}</b></div>
+      <div><span>Moyenne par mois</span><b>${eur(b.tot.net / 12)}</b></div></div>
+      <p class="hint" style="padding:0 16px 12px">La paie de décembre ${Y} paie le travail de novembre ; le travail de décembre est payé en janvier ${Y + 1}.${b.ck ? " Les mois jusqu'à " + MOIS[b.ck - 1] + " utilisent ton cumul réel." : " Les mois passés sont estimés par l'appli (±3 %) ; saisis le cumul de ta dernière fiche dans Réglages pour plus de précision."}</p></div>
+      <div class="card"><h2><span>Impôt sur le revenu (estimation)</span></h2>${irHTML}
+      <p class="hint" style="padding:0 16px 12px">Barème 2026 (revenus 2025), le plus récent connu. Les heures supplémentaires sont exonérées jusqu'à 7 500 € nets par an. Estimation indicative : ton avis d'imposition fait foi.</p></div>`;
+  }
+  if ($("bset")) $("bset").onclick = () => openProfile(false);
+  $("bprev").onclick = () => { if (Y > 2025) { st.p.annee = Y - 1; st.m = null; save(); refresh(); } };
+  $("bnext").onclick = () => { if (Y < 2031) { st.p.annee = Y + 1; st.m = null; save(); refresh(); } };
+}
+
 /* ---------- navigation ---------- */
 function refresh() {
   recompute();
@@ -861,11 +961,11 @@ function refresh() {
   $("who").className = "who" + (away ? " back" : "");
   $("who").onclick = away ? () => { st.m = null; save(); refresh(); } : null;
   $("mnav").hidden = st.tab !== "sim";
-  $("ttl").textContent = {sim: "Remplacements", cal: "Calendrier " + st.p.annee, par: "Réglages"}[st.tab];
-  ["sim", "cal", "par"].forEach(v => $("v-" + v).hidden = st.tab !== v);
-  $("fab").hidden = st.tab === "par" || !!document.querySelector(".sheet");
+  $("ttl").textContent = {sim: "Remplacements", cal: "Calendrier " + st.p.annee, bil: "Bilan " + st.p.annee, par: "Réglages"}[st.tab];
+  ["sim", "cal", "bil", "par"].forEach(v => $("v-" + v).hidden = st.tab !== v);
+  $("fab").hidden = st.tab === "par" || st.tab === "bil" || !!document.querySelector(".sheet");
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === st.tab));
-  if (st.tab === "sim") renderSim(); else if (st.tab === "cal") renderYear(); else renderPar();
+  if (st.tab === "sim") renderSim(); else if (st.tab === "cal") renderYear(); else if (st.tab === "bil") renderBil(); else renderPar();
 }
 function goTab(v) {
   st.tab = v; save(); refresh(); window.scrollTo(0, 0);
