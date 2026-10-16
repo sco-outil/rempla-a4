@@ -599,23 +599,18 @@ function renderSim() {
   const bF = bulletin(st.e, st.p, Yn, Mn, false, res), bFR = bulletin(st.e, st.p, Yn, Mn, true, res);
   const extra = bF.net - bN.net, extraRC = bFR.net - bN.net, hasExtra = nRemp > 0 || Math.abs(extra) > 0.5;
   const hasBase = pp.base !== null;
-  const det = [v.h50 + v.h75 + v.h100 + v.h125 ? `${num(v.h50 + v.h75 + v.h100 + v.h125)} h sup` : "", `${num(v.h390)} h prime horaire`,
-    v.f75 + v.f125 ? `${num(v.f75 + v.f125)} h férié` : "", v.dec ? `${num(v.dec)} h décalage` : ""].filter(Boolean).join(" · ");
-  $("hero").innerHTML = hasBase ? `<div class="hl">Mon salaire net de ${mNext} — planning équipe</div>
-    <div class="amt">${eur(bN.net)}</div>
+  const vd = hasExtra ? bF.v : v;
+  const det = [vd.h50 + vd.h75 + vd.h100 + vd.h125 ? `${num(vd.h50 + vd.h75 + vd.h100 + vd.h125)} h sup` : "", `${num(vd.h390)} h prime horaire`,
+    vd.f75 + vd.f125 ? `${num(vd.f75 + vd.f125)} h férié` : "", vd.dec ? `${num(vd.dec)} h décalage` : ""].filter(Boolean).join(" · ");
+  $("hero").innerHTML = hasBase ? `<div class="hl">Paie nette · ${mNext}${hasExtra ? " · avec mes remplacements" : " · planning équipe"}</div>
+    <div class="amt">${eur(hasExtra ? bF.net : bN.net)}</div>
     <div class="lines">
-      <div><span>Fixe de ${mNext} (brut)</span><b>${eur(bN.fixe)}</b></div>
-      <div><span>Primes de quarts de ${mn} (brut)</span><b>+ ${eur(v.total - v.rempl)}</b></div>
-      ${solo ? "" : `<div><span>Remplacements de ${mn} (${nRemp})</span><b>+ ${eur(v.rempl)}</b></div>`}
-      <div><span>Total brut</span><b>${eur(bN.brut)}</b></div>
-      <div class="tl"><span>Net à payer en ${mNext}</span><b>${eur(bN.net)}</b></div>
+      <div class="${hasExtra ? "" : "tl"}"><span>Net du planning de l'équipe</span><b>${eur(bN.net)}</b></div>
+      ${hasExtra ? `<div class="tl"><span>+ Remplacements et heures en plus (net)</span><b>+ ${eur(extra)}</b></div>
+      <div><span>Si le repos compensateur est payé</span><b>+ ${eur(extraRC - extra)}</b></div>` : ""}
+      <div style="opacity:.75"><span>Planning en brut : fixe ${eur(bN.fixe)} + primes de quarts ${eur(v.total - v.rempl)}</span><b>${eur(bN.brut)}</b></div>
     </div>
-    ${hasExtra ? `<div class="lines" style="margin-top:10px">
-      <div><span>Mes remplacements et heures en plus (net estimé)</span><b>+ ${eur(extra)}</b></div>
-      <div class="tl2" style="font-size:17px;font-weight:700"><span>Net avec mes remplacements</span><b>${eur(bF.net)}</b></div>
-      <div><span>Si le repos compensateur est payé</span><b>+ ${eur(extraRC - extra)}</b></div>
-    </div>` : ""}
-    <div class="sub">Le net du haut est celui du roulement seul ; tes remplacements s'ajoutent en dessous. Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie nette de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
+    <div class="sub">Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie nette de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
   : `<div class="hl">Mes remplacements — ${mn} (brut)</div>
     <div class="amt">${eur(rcP ? sumRC : sum)}</div>
     <div class="lines"><div><span>Salaire et net estimé</span><b><button class="lk" id="setnr">Ajouter mon NR</button></b></div></div>
