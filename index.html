@@ -6,48 +6,46 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" href="apple-touch-icon.png?v=2">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
 <style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}
 
 /* Layout : appli mobile, 3 onglets en bas, bouton « + Remplacement » flottant ; une seule feuille de saisie pour tout */
 :root{
-  --bg:#EEF2F6; --surface:#FFFFFF; --line:#D5DEE8; --fg:#14263D; --muted:#5E6F84;
-  --navy:#1E3A5F; --blue:#2E75B6; --in:#FFF8E1; --onnavy:#FFFFFF;
+  --bg:#F1F4F8; --surface:#FFFFFF; --line:#E1E7EF; --fg:#14263D; --muted:#55667B;
+  --navy:#1E3A5F; --blue:#2463A8; --in:#F4F7FB; --onnavy:#FFFFFF;
   --ok-bg:#DCFCE7; --ok-fg:#15803D; --warn-bg:#FFF1D6; --warn-fg:#9A5B00; --bad-bg:#FDE2E2; --bad-fg:#B71C1C;
   --ok:#22A55A; --warn:#F59E0B; --bad:#EF4444; --money:#065F46; --rc:#8A6A00; --vac:#FFEB3B; --gold:#F5C542;
   --pastel-ink:#1B2533;
   --q-M:#B3E5FC; --q-A:#C8E6C9; --q-N:#FFF9C4; --q-J17:#E1BEE7; --q-J16:#FFE0B2; --q-R:#ECEFF1; --q-H:#CFD8DC; --q-RJ:#D1C4E9; --q-F:#F8BBD0; --q-X:#EF9A9A;
-  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-cond:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
-  --r:12px;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  --f-cond:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,"Segoe UI",Roboto,sans-serif;
+  --r:16px; --card-bd:transparent; --shadow:0 1px 2px rgba(20,38,61,.06),0 4px 14px rgba(20,38,61,.06);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E1622; --surface:#16212F; --line:#2A3A4E; --fg:#E6EDF5; --muted:#9AAABD; --navy:#22436B; --blue:#4A90D0; --in:#3A3420;
+  --bg:#0B121C; --surface:#151F2C; --line:#243346; --fg:#EEF3F8; --muted:#A9B7C8; --navy:#1B3557; --blue:#5B9FE0; --in:#1E2A3A; --shadow:none; --card-bd:#1F2D3F;
   --ok-bg:#12351F; --ok-fg:#6EE7A0; --warn-bg:#3D2E10; --warn-fg:#FBBF5A; --bad-bg:#3F1A1A; --bad-fg:#FCA5A5; --money:#5EE0A8; --rc:#E8C547; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0E1622; --surface:#16212F; --line:#2A3A4E; --fg:#E6EDF5; --muted:#9AAABD; --navy:#22436B; --blue:#4A90D0; --in:#3A3420;
+  --bg:#0B121C; --surface:#151F2C; --line:#243346; --fg:#EEF3F8; --muted:#A9B7C8; --navy:#1B3557; --blue:#5B9FE0; --in:#1E2A3A; --shadow:none; --card-bd:#1F2D3F;
   --ok-bg:#12351F; --ok-fg:#6EE7A0; --warn-bg:#3D2E10; --warn-fg:#FBBF5A; --bad-bg:#3F1A1A; --bad-fg:#FCA5A5; --money:#5EE0A8; --rc:#E8C547; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
-body{color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+body{color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--navy)}
 button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--navy);color:var(--onnavy);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px}
 .top .row{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:1100px;margin:0 auto;min-height:48px}
-.top h1{font-family:var(--f-cond);font-size:20px;letter-spacing:.02em;margin:0;text-transform:uppercase;white-space:nowrap}
-.top .who{font-size:13px;opacity:.85;white-space:nowrap;border:0;background:none;color:inherit;padding:0;text-align:left;display:block}
+.top h1{font-family:var(--f-cond);font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0;white-space:nowrap}
+.top .who{font-size:14px;opacity:.85;min-height:28px;white-space:nowrap;border:0;background:none;color:inherit;padding:0;text-align:left;display:block}
 .top .who.back{opacity:1;font-weight:700;text-decoration:underline}
 .mnav{display:flex;align-items:center;gap:2px}
-.mnav button.ar{background:rgba(255,255,255,.16);border:0;border-radius:10px;width:46px;height:44px;font-size:24px;color:var(--onnavy);line-height:1}
-.mnav .ml{font-family:var(--f-cond);font-weight:700;min-width:104px;text-align:center;font-size:17px;text-transform:capitalize}
+.mnav button.ar{background:rgba(255,255,255,.16);border:0;border-radius:12px;width:44px;height:44px;font-size:24px;color:var(--onnavy);line-height:1}
+.mnav .ml{font-family:var(--f-cond);font-weight:600;min-width:92px;text-align:center;font-size:17px;text-transform:capitalize;line-height:1.15}
 main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:14px calc(150px + env(safe-area-inset-bottom,0px))}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:flex;
   padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.tabs button{flex:1;border:0;background:none;padding:8px 4px 9px;font-family:var(--f-cond);font-weight:600;font-size:14px;color:var(--muted);
+.tabs button{flex:1;border:0;background:none;padding:8px 4px 9px;font-family:var(--f-body);font-weight:600;font-size:12.5px;color:var(--muted);
   display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px}
 .tabs button svg{width:24px;height:24px}
 .tabs button[aria-selected="true"]{color:var(--blue)}
@@ -55,23 +53,23 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
   border:0;border-radius:999px;background:var(--blue);color:#fff;font-weight:700;font-size:17px;padding:0 20px 0 16px;height:54px;
   display:flex;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(20,38,61,.35)}
 .fab b{font-size:28px;line-height:1;font-weight:500;margin-top:-2px}
-.grid2{display:grid;gap:14px}
+.grid2{display:grid;gap:18px}
 @media (min-width:900px){.grid2{grid-template-columns:1.1fr 1fr;align-items:start}}
-.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stack{display:flex;flex-direction:column;gap:18px;min-width:0}
 /* résumé du mois */
-.hero{background:linear-gradient(160deg,var(--navy),color-mix(in srgb,var(--navy) 70%,var(--blue)));color:#fff;border-radius:16px;padding:16px 16px 14px}
-.hero .hl{font-family:var(--f-cond);font-size:13px;letter-spacing:.07em;text-transform:uppercase;opacity:.85}
-.hero .amt{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 8px;white-space:nowrap}
+.hero{background:linear-gradient(160deg,var(--navy),color-mix(in srgb,var(--navy) 70%,var(--blue)));color:#fff;border-radius:20px;padding:18px 18px 16px}
+.hero .hl{font-size:14px;font-weight:600;opacity:.85}
+.hero .amt{font-size:44px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 8px;white-space:nowrap}
 .seg{display:inline-flex;background:rgba(255,255,255,.16);border-radius:10px;padding:3px}
 .seg button{border:0;background:none;color:#fff;padding:8px 14px;border-radius:8px;font-weight:600;font-size:15px;min-height:40px}
 .seg button[aria-pressed="true"]{background:#fff;color:var(--navy)}
-.hero .sub{font-size:13px;opacity:.8;margin-top:8px}
+.hero .sub{font-size:14px;opacity:.85;margin-top:10px;line-height:1.45}
 .ck{display:flex;gap:10px;align-items:center;font-size:15px;margin:10px 0;color:var(--fg)}.ob .ck input,.ck input{width:22px!important;height:22px!important;min-height:0!important;flex:0 0 22px;margin:0;accent-color:var(--blue)}
 .lines{margin-top:12px;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
-.lines>div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(255,255,255,.18);font-size:15px}
+.lines>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.18);font-size:15px}
 .lines>div b{white-space:nowrap}
 .lines .tl{font-size:17px;font-weight:700}.lines .tl b{color:var(--gold)}
-.lk{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:4px 10px;font-weight:700;font-size:14px}
+.lk{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:0 12px;min-height:36px;font-weight:700;font-size:14px;white-space:nowrap}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pgrid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
 .pgrid select,.pgrid input,.ob input.sm{font:inherit;font-size:17px;font-weight:700;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--in);color:var(--fg);padding:0 10px;width:100%}
@@ -90,20 +88,21 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
 .whylist .it{padding:10px 14px;border-top:1px solid var(--line);font-size:15px}
 .whylist .it:first-child{border-top:0}
 .whylist .it.bad{background:var(--bad-bg);color:var(--bad-fg)}.whylist .it.warn{background:var(--warn-bg);color:var(--warn-fg)}.whylist .it.ok{background:var(--ok-bg);color:var(--ok-fg)}
-.rw2,.lines2>div{display:flex;justify-content:space-between;gap:10px;padding:9px 16px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}.rw2 .d{flex:1;color:var(--muted);font-size:13px;text-align:right}.lines2 .big{font-weight:700;font-size:16px;background:color-mix(in srgb,var(--blue) 8%,transparent)}.rw2 b,.lines2 b{white-space:nowrap}.rw2{display:flex}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;min-width:0}
-.card>h2{margin:0;background:var(--navy);color:var(--onnavy);font-family:var(--f-cond);font-size:15px;letter-spacing:.05em;text-transform:uppercase;padding:9px 14px;
-  display:flex;justify-content:space-between;gap:8px;text-transform:uppercase}
-.list .rw{display:grid;grid-template-columns:48px 1fr auto 32px;gap:10px;align-items:center;padding:10px 12px;width:100%;
+.rw2,.lines2>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 16px;min-height:48px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}.rw2 .d{flex:1;color:var(--muted);font-size:13px;text-align:right}.lines2 .big{font-weight:700;font-size:16px;background:color-mix(in srgb,var(--blue) 8%,transparent)}.rw2 b,.lines2 b{white-space:nowrap}.rw2{display:flex}.card{background:var(--surface);border:1px solid var(--card-bd);border-radius:var(--r);overflow:hidden;min-width:0;box-shadow:var(--shadow)}
+.card>h2{margin:0;color:var(--fg);font-family:var(--f-cond);font-size:17px;font-weight:700;letter-spacing:-.01em;padding:14px 16px 10px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card>h2 span+span{color:var(--muted);font-weight:600;font-size:15px}
+.list .rw{display:grid;grid-template-columns:48px 1fr auto 32px;gap:10px;align-items:center;padding:12px 16px;width:100%;
   border:0;border-top:1px solid var(--line);background:none;text-align:left;min-height:64px;font-variant-numeric:tabular-nums}
-.list h2+.rw{border-top:0}
+.list h2+.rw{border-top:1px solid var(--line)}
 .list .rw:active{background:color-mix(in srgb,var(--blue) 10%,var(--surface))}
 .dt{display:flex;flex-direction:column;align-items:center;line-height:1.05}
 .dt b{font-size:24px}.dt small{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:600}
 .mid{display:flex;flex-direction:column;gap:3px;min-width:0}
 .mid .chips{display:flex;align-items:center;gap:6px}
-.mid small{font-size:12.5px;color:var(--muted)}
+.mid small{font-size:13.5px;color:var(--muted)}
 .m{text-align:right;font-weight:700;font-size:18px;color:var(--money);white-space:nowrap}
-.m small{display:block;font-weight:600;font-size:12.5px;color:var(--muted)}
+.m small{display:block;font-weight:600;font-size:13px;color:var(--muted)}
 .chip{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:3px 8px;border-radius:7px;font-weight:700;font-size:14px;color:var(--pastel-ink);background:var(--q-R)}
 .a4{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-weight:700;font-size:15px}
 .a4.l0{background:var(--ok-bg);color:var(--ok-fg)}.a4.l1{background:var(--warn);color:#fff}.a4.l2{background:var(--bad);color:#fff}
@@ -113,44 +112,44 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
 .btn{border:0;border-radius:12px;padding:0 18px;min-height:50px;font-weight:700;font-size:17px;background:var(--blue);color:#fff}
 .btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--line)}
 .btn.danger{background:transparent;color:var(--bad-fg);border:1px solid var(--line)}
-.btn.sm{min-height:44px;font-size:15px}
-.btnrow{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line)}
+.btn.sm{min-height:44px;font-size:15px;white-space:nowrap}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line)}
 /* calendrier */
 .cal table{width:100%;border-collapse:collapse;table-layout:fixed}
 .cal{scroll-margin-top:74px}
-.cal th{background:var(--blue);color:#fff;font-family:var(--f-cond);font-size:12px;font-weight:600;padding:4px 0;text-transform:uppercase}
+.cal th{background:transparent;color:var(--muted);font-family:var(--f-body);font-size:12px;font-weight:700;padding:4px 0 6px;text-transform:uppercase;letter-spacing:.02em}
 .cal th.w{width:17%}
-.cal td{border:1px solid var(--line);padding:0;vertical-align:top;height:54px}
+.cal td{border:1px solid var(--line);padding:0;vertical-align:top;height:60px}
 .day{display:flex;flex-direction:column;width:100%;height:100%;border:0;padding:0;background:var(--surface);text-align:center}
-.day .n{font-size:12px;font-weight:700;color:var(--muted);padding:1px 0;line-height:1.35}
+.day .n{font-size:13px;font-weight:700;color:var(--muted);padding:2px 0;line-height:1.35}
 .day .n.vac{background:var(--vac);color:#000}
 .day .n.l1{background:var(--warn);color:#fff}.day .n.l2{background:var(--bad);color:#fff}
-.day .q{flex:1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--pastel-ink);line-height:1.05;padding:1px;word-break:break-all}
+.day .q{flex:1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--pastel-ink);line-height:1.05;padding:1px;word-break:break-all}
 .day.today .n{outline:2px solid var(--blue);outline-offset:-2px}
-.wk{font-size:11px;text-align:center;font-variant-numeric:tabular-nums;padding:3px 1px;line-height:1.25;background:color-mix(in srgb,var(--bg) 60%,var(--surface))}
-.wk b{display:block;font-size:12px}
+.wk{font-size:12px;text-align:center;font-variant-numeric:tabular-nums;padding:3px 1px;line-height:1.25;background:color-mix(in srgb,var(--bg) 60%,var(--surface))}
+.wk b{display:block;font-size:12.5px;white-space:nowrap}.cal>h2{text-transform:capitalize}.rw2 .d{white-space:nowrap}
 .wk.l1 b{color:var(--warn-fg)}.wk.l2 b{color:var(--bad-fg)}.wk.l0 b{color:var(--ok-fg)}
 .wk small{color:var(--muted)}
 .yeargrid{display:grid;gap:14px}
 @media (min-width:760px){.yeargrid{grid-template-columns:1fr 1fr}}
 @media (min-width:1080px){.yeargrid{grid-template-columns:1fr 1fr 1fr}}
-.legend{display:flex;flex-wrap:wrap;gap:5px;font-size:12.5px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;font-size:13.5px}
 .legend span{padding:4px 8px;border-radius:6px;font-weight:700;color:var(--pastel-ink)}
 /* feuille de saisie */
 .sheet-bg{position:fixed;inset:0;background:rgba(10,20,35,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px calc(16px + env(safe-area-inset-bottom,0px))}
 .grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
-.sheet h3{margin:0 0 2px;font-family:var(--f-cond);font-size:22px}
+.sheet h3{margin:0 0 2px;font-family:var(--f-cond);font-size:22px;font-weight:700;letter-spacing:-.01em}
 .sheet .sub{color:var(--muted);font-size:14px}
-.lab{font-family:var(--f-cond);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.lab{font-size:14px;font-weight:600;color:var(--muted);margin:16px 0 6px}
 .dsel{display:grid;grid-template-columns:48px 1fr 48px;gap:6px;align-items:stretch}
 .dsel button,.dsel label{border:1px solid var(--line);background:var(--surface);border-radius:12px;min-height:52px;font-size:22px}
 .dsel label{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:17px;font-weight:700;line-height:1.15}
 .dsel label small{font-weight:500;font-size:13px;color:var(--muted)}
 .dsel input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px}
 .fdrow{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-.fd{flex:0 0 auto;min-width:56px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 4px;text-align:center;line-height:1.15}
+.fd{flex:0 0 auto;min-width:56px;min-height:52px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 4px;text-align:center;line-height:1.15}
 .fd b{display:block;font-size:18px}.fd small{font-size:12px;color:var(--muted);text-transform:uppercase}
 .fd[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}.fd[aria-pressed="true"] small{color:#fff}
 .tbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -159,10 +158,10 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
 .tb[aria-pressed="true"]{border-color:var(--fg)}
 .tb[aria-pressed="true"]::after{content:"✓";font-size:14px}
 .picks{display:flex;flex-wrap:wrap;gap:6px}
-.pick{border:2px solid transparent;border-radius:10px;padding:0;min-width:52px;min-height:46px;font-weight:700;font-size:16px;color:var(--pastel-ink);background:var(--q-R)}
+.pick{border:2px solid transparent;border-radius:10px;padding:0;min-width:52px;min-height:48px;font-weight:700;font-size:16px;color:var(--pastel-ink);background:var(--q-R)}
 .pick[aria-pressed="true"]{border-color:var(--fg)}
 .pick.none{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
-.more{width:100%;margin-top:12px;border:1px dashed var(--line);background:none;border-radius:10px;min-height:46px;color:var(--blue);font-weight:600}
+.more{width:100%;margin-top:12px;border:1px solid var(--line);background:none;border-radius:12px;min-height:48px;color:var(--blue);font-weight:600}
 .step{display:flex;align-items:center;gap:8px}
 .step button{width:52px;height:48px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:24px;font-weight:700}
 .step output{min-width:80px;text-align:center;font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
@@ -176,22 +175,38 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
 .actions{display:flex;gap:8px;margin-top:14px}
 .actions .btn{flex:1}.actions .btn.ghost,.actions .btn.danger{flex:0 0 auto}
 /* paramètres */
-.form{padding:4px 14px 12px}
+.form{padding:0 16px 12px}
 .f{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .f:first-child{border-top:0}
 .f label{font-weight:600}.f label small{display:block;font-weight:400;color:var(--muted);font-size:13px}
 .f input,.f select{font:inherit;font-size:16px;font-weight:700;width:120px;min-height:44px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--in);color:var(--fg);text-align:right}
 .f select{text-align:left}
-.prose{padding:14px;font-size:15px;max-width:65ch}
+.prose{padding:0 16px 16px;font-size:15px;max-width:65ch}
 .prose ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
-details.card>summary{list-style:none;cursor:pointer;background:var(--navy);color:var(--onnavy);font-family:var(--f-cond);font-size:15px;letter-spacing:.05em;text-transform:uppercase;padding:11px 14px;display:flex;justify-content:space-between}
+details.card>summary{list-style:none;cursor:pointer;color:var(--fg);font-family:var(--f-cond);font-size:17px;font-weight:700;padding:14px 16px;min-height:52px;display:flex;justify-content:space-between;align-items:center}
 details.card>summary::-webkit-details-marker{display:none}
 details.card>summary::after{content:"▾"}
 details.card[open]>summary::after{content:"▴"}
 textarea{width:100%;min-height:110px;font:14px/1.35 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--bg);color:var(--fg)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:0 8px 0 16px;min-height:46px;display:flex;align-items:center;gap:12px;border-radius:12px;font-weight:600;z-index:30;font-size:15px;white-space:nowrap}
 .toast button{border:0;background:none;color:var(--gold);font-weight:700;padding:10px 8px;font-size:15px}
-.hint{font-size:13.5px;color:var(--muted)}
+.hint{font-size:14px;color:var(--muted)}
+/* nouveautés v8 */
+.upd{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border:1px solid var(--blue);border-radius:var(--r);padding:12px 12px 12px 16px;margin-bottom:18px}
+.upd b{display:block}.upd small{color:var(--muted);font-size:13.5px}
+.rl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.18);font-size:15px}
+.rl small{display:block;font-size:13.5px;opacity:.85}.lk.ghost{background:none;border:1px solid rgba(255,255,255,.35)}.rl .up{color:#9BF0C4}.rl .dn{color:#FFC4C4}
+button.rw2{width:100%;border:0;border-top:1px solid var(--line);background:none;text-align:left;font:inherit;color:inherit}
+button.rw2:active{background:color-mix(in srgb,var(--blue) 10%,var(--surface))}
+.rw2 .rv{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}.rw2 .rv small{font-size:12.5px;font-weight:600;color:var(--muted)}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--ok-bg);color:var(--ok-fg);margin-left:6px;vertical-align:1px}
+.big-in{font:inherit;font-size:26px;font-weight:700;width:100%;min-height:58px;border-radius:14px;border:1px solid var(--line);background:var(--in);color:var(--fg);padding:0 14px;text-align:center}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.kpis div{background:var(--surface);padding:12px 8px;text-align:center}.kpis b{display:block;font-size:18px;white-space:nowrap}.kpis small{font-size:12.5px;color:var(--muted)}
+.codes{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;padding:4px 16px 16px;font-size:14.5px}
+.codes .chip{min-width:46px}
+.ynav{display:flex;align-items:center;justify-content:space-between;gap:8px}.ynav span{font-size:14px;color:var(--muted);text-align:center;font-weight:600}
+.ver{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 16px 14px}
 .teams{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .teams button{min-height:52px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-size:22px;font-weight:700}
 .teams button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -206,6 +221,7 @@ textarea{width:100%;min-height:110px;font:14px/1.35 ui-monospace,Menlo,monospace
 </div></header>
 
 <main id="main">
+  <div id="upd" class="upd" hidden></div>
   <section id="v-sim">
     <div class="grid2">
       <div class="stack">
@@ -216,6 +232,7 @@ textarea{width:100%;min-height:110px;font:14px/1.35 ui-monospace,Menlo,monospace
       <div class="stack">
         <div id="cals2" class="stack"></div>
         <div class="legend" id="leg"></div>
+        <details class="card"><summary>Que veulent dire les codes ?</summary><div class="codes" id="codes"></div></details>
       </div>
     </div>
   </section>
@@ -231,6 +248,7 @@ textarea{width:100%;min-height:110px;font:14px/1.35 ui-monospace,Menlo,monospace
         <details class="card"><summary>Règles A4 (seuils)</summary><div class="form" id="form2"></div></details>
       </div>
       <div class="stack">
+        <div class="card"><h2>Application</h2><div class="ver"><span><b id="vtxt"></b><br><span class="hint" id="vmsg">Les mises à jour se vérifient à chaque ouverture.</span></span><button class="btn sm ghost" id="vchk">Vérifier</button></div></div>
         <div class="card"><h2>Installer sur l'iPhone</h2><div class="prose">
           <ol>
             <li>Ouvre le lien de l'appli dans <b>Safari</b>.</li>
@@ -583,7 +601,7 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catc
 const $ = id => document.getElementById(id);
 const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 const JS = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
-const eur = v => v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " €";
+const eur = v => v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + "\u00a0€";
 const num = (v, k = 2) => v.toLocaleString("fr-FR", {maximumFractionDigits: k});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const todayN = () => { const t = new Date(); return D(t.getFullYear(), t.getMonth() + 1, t.getDate()); };
@@ -595,6 +613,47 @@ const monN = n => new Date(n * 864e5).getUTCMonth() + 1;
 const MABR = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const longDate = n => `${JS[wdN(n)]} ${dayNum(n)} ${MABR[monN(n) - 1]} ${parts(n)[0]}`;
 const FREE = ["R", "H", "R/J"];
+const VERSION = "2026.10.17.1";
+const rkey = (y, m) => `${y}-${String(m).padStart(2, "0")}`;
+const reels = () => st.p.reels || {};
+const rcPay = () => st.p.rcPaye !== false;   // par défaut : RC payés (choix dans Réglages)
+const estNet = (y, m) => bulletin(st.e, st.p, y, m, rcPay()).net;
+const eur0 = v => Math.round(v).toLocaleString("fr-FR") + "\u00a0€", sgn0 = v => (v >= 0 ? "+\u00a0" : "−\u00a0") + eur0(Math.abs(v));
+const sgn = v => (v >= 0 ? "+\u00a0" : "−\u00a0") + eur(Math.abs(v));
+function ecarts() {
+  const L = [];
+  for (const k in reels()) { const [y, m] = k.split("-").map(Number), e = estNet(y, m); if (isFinite(e)) L.push({k, y, m, reel: reels()[k], est: e, d: reels()[k] - e}); }
+  return L.sort((a, b) => a.k < b.k ? -1 : 1);
+}
+const corrMoy = () => { const d = ecarts().map(x => x.d).sort((a, b) => a - b), n = d.length;   // médiane : un mois exceptionnel (prime, retenue) ne fausse pas la correction
+  return n ? (n % 2 ? d[(n - 1) / 2] : (d[n / 2 - 1] + d[n / 2]) / 2) : 0; };
+const corrOn = () => !!st.p.corrOn && ecarts().length > 0;
+const parseEur = t => parseFloat(String(t).replace(/\s/g, "").replace("€", "").replace(",", "."));
+function openReel(y, m) {
+  const k = rkey(y, m), cur = reels()[k], e = estNet(y, m);
+  sheet(`<h3>Net réel de ${MOIS[m - 1]} ${y}</h3><div class="sub">Le « Net à payer » de ta fiche de paie, ou le virement reçu.</div>
+    <div class="lab">Net réel reçu (€)</div><input id="rv" class="big-in" type="text" inputmode="decimal" autocomplete="off" placeholder="ex. 3 736,76" value="${cur != null ? String(cur).replace(".", ",") : ""}">
+    <div class="preview"><div class="pr"><span>Estimation de l'appli</span><b>${eur(e)}</b></div><div class="pr" id="rd"></div></div>
+    <p class="hint">Plus tu saisis de mois, plus l'appli sait de combien elle se trompe en moyenne, et peut corriger ses prochaines estimations.</p>
+    <div class="actions"><button class="btn ghost" id="rcx">Annuler</button>${cur != null ? '<button class="btn danger" id="rdel">Effacer</button>' : ""}<button class="btn" id="rok">Enregistrer</button></div>`);
+  const upd = () => { const v = parseEur($("rv").value); $("rd").innerHTML = isFinite(v) && v > 0 ? `<span>Écart réel − appli</span><b>${sgn(v - e)}</b>` : `<span class="hint">L'écart s'affiche dès que tu tapes le montant.</span>`; };
+  $("rv").oninput = upd; upd();
+  $("rcx").onclick = closeLayer;
+  if ($("rdel")) $("rdel").onclick = () => { const r = {...reels()}; delete r[k]; st.p.reels = r; save(); closeLayer(); refresh(); toast("Net réel effacé"); };
+  $("rok").onclick = () => { const v = parseEur($("rv").value); if (!isFinite(v) || v <= 0) { $("rv").focus(); return; }
+    st.p.reels = {...reels(), [k]: Math.round(v * 100) / 100}; save(); closeLayer(); refresh(); toast("Net réel enregistré"); };
+}
+async function checkVersion(manual) {
+  if (!/^https?:/.test(location.protocol)) { if (manual) toast("Vérification possible seulement en ligne"); return; }
+  try { const r = await fetch("version.json?t=" + Date.now(), {cache: "no-store"}), j = await r.json();
+    if (j.v && j.v > VERSION) showUpd(j.v); else if (manual) toast("Tu as la dernière version"); }
+  catch (_) { if (manual) toast("Pas de connexion : vérification impossible"); }
+}
+function showUpd(v) {
+  const b = $("upd"); b.hidden = false;
+  b.innerHTML = `<span><b>Nouvelle version disponible</b><small>Version ${VERSION} → ${esc(v)}</small></span><button class="btn sm" id="updgo">Mettre à jour</button>`;
+  $("updgo").onclick = () => location.replace(location.pathname + "?v=" + encodeURIComponent(v));
+}
 function qcol(code) {
   const c = String(code || "");
   if (c.includes("★")) return "var(--q-X)";
@@ -651,26 +710,30 @@ function renderSim() {
   const Mn = M0 === 12 ? 1 : M0 + 1, Yn = M0 === 12 ? Y + 1 : Y, mNext = MOIS[Mn - 1];
   const solo = true, eb = {};   // « planning seul » : roulement de l'équipe, sans remplacements ni heures en plus
   const bN = bulletin(eb, st.p, Yn, Mn, rcP, solo ? null : res), bC = bulletin(eb, st.p, Y, M0, rcP, solo || M0 === 1 ? null : res), v = bN.v;
-  const bF = bulletin(st.e, st.p, Yn, Mn, false, res), bFR = bulletin(st.e, st.p, Yn, Mn, true, res);
-  const extra = bF.net - bN.net, extraRC = bFR.net - bN.net, hasExtra = nRemp > 0 || Math.abs(extra) > 0.5;
+  const bF0 = bulletin(st.e, st.p, Yn, Mn, false, res), bF1 = bulletin(st.e, st.p, Yn, Mn, true, res), bF = rcPay() ? bF1 : bF0;
+  const extra = bF.net - bN.net, rcDiff = bF1.net - bF0.net, hasExtra = nRemp > 0 || Math.abs(extra) > 0.5;
   const hasBase = pp.base !== null;
   const vd = hasExtra ? bF.v : v;
+  const cOn = corrOn(), cM = corrMoy(), nE = ecarts().length, estC = hasBase ? estNet(Y, M0) : 0, rC = reels()[rkey(Y, M0)];
   const det = [vd.h50 + vd.h75 + vd.h100 + vd.h125 ? `${num(vd.h50 + vd.h75 + vd.h100 + vd.h125)} h sup` : "", `${num(vd.h390)} h prime horaire`,
     vd.f75 + vd.f125 ? `${num(vd.f75 + vd.f125)} h férié` : "", vd.dec ? `${num(vd.dec)} h décalage` : ""].filter(Boolean).join(" · ");
   $("hero").innerHTML = hasBase ? `<div class="hl">Paie nette · ${mNext}${hasExtra ? " · avec mes remplacements" : " · planning équipe"}</div>
-    <div class="amt">${eur(hasExtra ? bF.net : bN.net)}</div>
+    <div class="amt">${eur((hasExtra ? bF.net : bN.net) + (cOn ? cM : 0))}</div>
     <div class="lines">
       <div class="${hasExtra ? "" : "tl"}"><span>Net du planning de l'équipe</span><b>${eur(bN.net)}</b></div>
       ${hasExtra ? `<div class="tl"><span>+ Remplacements et heures en plus (net)</span><b>+ ${eur(extra)}</b></div>
-      <div><span>Si le repos compensateur est payé</span><b>+ ${eur(extraRC - extra)}</b></div>` : ""}
+      ${rcDiff > 0.5 ? `<div style="opacity:.8"><span>${rcPay() ? "dont repos compensateur payé" : "Si tu te faisais payer tes RC"}</span><b>+ ${eur(rcDiff)}</b></div>` : ""}` : ""}
+      ${cOn ? `<div><span>Correction d'après tes fiches (${nE} mois)</span><b>${sgn(cM)}</b></div>` : ""}
       <div style="opacity:.75"><span>Planning en brut : fixe ${eur(bN.fixe)} + primes de quarts ${eur(v.total - v.rempl)}</span><b>${eur(bN.brut)}</b></div>
     </div>
-    <div class="sub">Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie nette de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
+    <div class="rl"><span>Paie de ${mn}<small>appli ${eur(estC)}${rC != null ? ` · écart <span class="${rC - estC >= 0 ? "up" : "dn"}">${sgn(rC - estC)}</span>` : ""}</small></span>${rC != null ? `<button class="lk ghost" id="hreel">réel ${eur(rC)}</button>` : `<button class="lk" id="hreel">Saisir le net réel</button>`}</div>
+    <div class="sub">Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Estimation ±3 %.</div>`
   : `<div class="hl">Mes remplacements — ${mn} (brut)</div>
     <div class="amt">${eur(rcP ? sumRC : sum)}</div>
     <div class="lines"><div><span>Salaire et net estimé</span><b><button class="lk" id="setnr">Ajouter mon NR</button></b></div></div>
     <div class="sub">${nRemp} remplacement${nRemp > 1 ? "s" : ""} · montants bruts payés le mois suivant</div>`;
   if ($("setnr")) $("setnr").onclick = () => openProfile(false);
+  if ($("hreel")) $("hreel").onclick = () => openReel(Y, M0);
   // A4
   const inW = r => r.n >= d1 && r.n <= d2;
   const hmax = Math.max(0, ...res.R.filter(inW).map(r => r.hs));
@@ -693,7 +756,7 @@ function renderSim() {
   if (!rowsM.length) L += `<div class="empty"><b>Rien de saisi en ${mn}</b>Ajoute un remplacement pour voir tout de suite le montant et le contrôle A4.<br><button class="btn" id="add1">+ Ajouter un remplacement</button></div>`;
   for (const x of rowsM) {
     const nuitTr = x.type === "N" && x.key && !x.key.endsWith("R/J") ? x.key.split("|")[1] : "";
-    const quart = nuitTr ? nuitTr.slice(0, -1) + "→" + nuitTr.slice(-1) : (x.quart === "RJ" ? "R/J" : x.quart), main = x.montant === null ? null : x.montant;
+    const quart = nuitTr ? nuitTr.slice(0, -1) + "→" + nuitTr.slice(-1) : (x.quart === "RJ" ? "R/J" : x.quart), main = x.montant === null ? null : rcPay() ? x.montantRC : x.montant;
     L += `<button class="rw" data-n="${x.n}"><span class="dt"><b>${dayNum(x.n)}</b><small>${JS[wdN(x.n)]}</small></span>
       <span class="mid"><span class="chips">${chip(x.type)}<span class="hint">sur ${chip(quart)}</span></span>${x.det ? `<small>${detTxt(x.det, false)}${x.ferie ? " · férié" : ""}</small>` : `<small>${x.ferie ? "férié" : "absence / formation"}</small>`}</span>
       <span class="m">${main !== null ? eur(main) : "—"}</span><span class="a4 l${x.a4}">${["✓","⚠","✖"][x.a4]}</span></button>`;
@@ -704,7 +767,16 @@ function renderSim() {
   const LG = [["M","M"],["A","A"],["N","N"],["J17","J17"],["J16/J12","J16"],["R","R"],["H","H"],["R/J","R/J"],["F8/F4","F8"],["★ rempl.","M★"]];
   $("leg").innerHTML = LG.map(([t, c]) => `<span style="background:${qcol(c)}">${t}</span>`).join("") +
     `<span style="background:var(--vac);color:#000">☀ vacances</span><span style="background:var(--warn);color:#fff">⚠</span><span style="background:var(--bad);color:#fff">✖</span>`;
+  $("codes").innerHTML = codesHTML();
 }
+const CODES = [["M","M","Matin · 6h00 → 13h45"],["A","A","Après-midi · 13h30 → 21h15"],["N","N","Nuit · 21h00 → 6h15"],
+  ["J17","J17","Journée · 8h00 → 17h00"],["J16","J16","Journée · 8h00 → 16h00 (J12 : 8h → 12h)"],["R","R","Repos"],["H","H","Jour sans quart du roulement"],
+  ["R/J","R/J","Repos ou journée selon le roulement"],["M★","M★","Remplacement saisi (★)"],["C","C","Congé : le quart prévu est retiré"],
+  ["RC","RC","Repos compensateur"],["HP","HP","Heure perso"],["AM","AM","Arrêt maladie"],["F8","F8/F4","Formation 8 h / 4 h"]];
+const codesHTML = () => CODES.map(([c, t, d]) => `<span class="chip" style="background:${qcol(c)}">${t}</span><span>${d}</span>`).join("") +
+  `<span class="chip" style="background:var(--vac);color:#000">☀</span><span>Vacances scolaires (zone de ton profil)</span>
+   <span class="chip" style="background:var(--warn);color:#fff">⚠</span><span>Point A4 à surveiller</span>
+   <span class="chip" style="background:var(--bad);color:#fff">✖</span><span>Écart A4 à corriger</span>`;
 function renderYear() {
   const Y = +st.p.annee; let h = "";
   for (let m = 1; m <= 12; m++) h += monthHTML(Y, m);
@@ -721,6 +793,7 @@ function renderPar() {
       <small>${pp.base !== null ? "Salaire de base " + eur(pp.base) + " · taux horaire " + num(pp.taux) + " €/h" : "Taux horaire " + num(+p.taux) + " €/h (NR non renseigné)"}${+p.fixes ? " · éléments fixes " + eur(+p.fixes) : ""}</small></label>
       <button class="btn sm" id="pedit">Modifier</button></div>
     <div class="f"><label for="p-an">Année</label><select id="p-an">${yrs.map(y => `<option ${+p.annee === y ? "selected" : ""}>${y}</option>`).join("")}</select></div>
+    <div class="f"><label for="p-rc">Mes repos compensateurs (RC)<small>Payés en heures, ou pris en repos</small></label><select id="p-rc"><option value="1" ${rcPay() ? "selected" : ""}>Payés</option><option value="0" ${rcPay() ? "" : "selected"}>Compensés</option></select></div>
     <div class="f"><label for="p-sa">Note A4 « 2,25 si R = samedi »<small>En attente de la réponse du CE</small></label><select id="p-sa">${["Jour de la nuit","Lendemain"].map(v => `<option ${p.samedi === v ? "selected" : ""}>${v}</option>`).join("")}</select></div>
     <div class="f"><label for="p-snb">Valeur du SNB (€)<small>Salaire national de base IEG : 543,18 au 1er janvier 2026</small></label><input id="p-snb" type="number" inputmode="decimal" step="0.01" value="${p.snb}"></div>`;
   const S = [["repos","Repos quotidien minimum (h)"],["jour","Durée max de travail par jour (h)"],["sem","Max heures par semaine (dim → sam)"],
@@ -728,11 +801,13 @@ function renderPar() {
   $("form2").innerHTML = S.map(([k, l]) => `<div class="f"><label for="s-${k}">${l}</label><input id="s-${k}" type="number" inputmode="decimal" step="0.25" value="${p[k]}"></div>`).join("") +
     `<div class="f"><span class="hint">Valeurs du A4 pointage. Ne les change que si la règle change.</span><button class="btn sm ghost" id="sdef">Valeurs A4</button></div>`;
   const bind = (id, k, f = Number) => { $(id).onchange = ev => { const v = f(ev.target.value); if (f === Number && !isFinite(v)) return; st.p[k] = v; save(); refresh(); toast("Enregistré"); }; };
+  $("p-rc").onchange = ev => { st.p.rcPaye = ev.target.value === "1"; save(); refresh(); toast(st.p.rcPaye ? "RC payés" : "RC compensés en repos"); };
   bind("p-an", "annee"); bind("p-sa", "samedi", String); bind("p-snb", "snb");
   $("pedit").onclick = () => openProfile(false);
   S.forEach(([k]) => bind("s-" + k, k));
   $("sdef").onclick = () => { S.forEach(([k]) => st.p[k] = DEFAULTS[k]); save(); refresh(); toast("Seuils A4 remis"); };
   $("bk").value = JSON.stringify({p: st.p, e: st.e});
+  $("vtxt").textContent = "SCO Rempla · version " + VERSION;
 }
 
 /* ---------- feuille de saisie (une seule pour tout) ---------- */
@@ -800,8 +875,8 @@ function openSheet(n0) {
     const base = r.base === "R/J" ? "R/J" : r.base, [d1, d2] = win(), fr = freeDays(d1, d2);
     const chips = fr.map(f => `<button class="fd" data-n="${f.n}" aria-pressed="${f.n === n}"><b>${dayNum(f.n)}</b><small>${JS[wdN(f.n)]}</small></button>`).join("");
     let pv = "";
-    for (const x of rows) if (x.det) pv += `<div class="pr"><span>${chip(x.type)} <span class="hint">${detTxt(x.det, false)}</span></span><span class="big">${eur(x.montant)}</span></div>
-      ${x.det.rc ? `<div class="pr"><span class="hint">RC payé (+${num(x.det.rc)} h)</span><b style="color:var(--rc)">${eur(x.montantRC)}</b></div>` : ""}
+    for (const x of rows) if (x.det) pv += `<div class="pr"><span>${chip(x.type)} <span class="hint">${detTxt(x.det, false)}</span></span><span class="big">${eur(rcPay() ? x.montantRC : x.montant)}</span></div>
+      ${x.det.rc ? `<div class="pr"><span class="hint">${rcPay() ? `dont RC payé (${num(x.det.rc)} h)` : `RC compensé (${num(x.det.rc)} h de repos) · si payé`}</span><b style="color:var(--rc)">${rcPay() ? "+ " + eur(x.montantRC - x.montant) : eur(x.montantRC)}</b></div>` : ""}
       <div class="pr"><span class="hint">Payé sur la paie du mois suivant</span></div>`;
     const lvl = Math.max(r.nivj, r.nivs);
     const chosen = !!(s1 || s2 || hp);
@@ -956,12 +1031,18 @@ function toast(t, label, fn) {
 /* ---------- bilan de l'année + impôt ---------- */
 function renderBil() {
   const Y = +st.p.annee, pe = effParams(st.p, Y, 1);
-  const b = pe.base !== null ? bilanAnnee(st.e, st.p, Y, !!st.rc) : null;
-  const nav = `<div class="card"><h2><span>Bilan ${Y} · paies de janvier à décembre</span></h2>
-    <div class="btnrow" style="justify-content:space-between;border:0"><button class="btn sm ghost" id="bprev" aria-label="Année précédente">‹ ${Y - 1}</button><button class="btn sm ghost" id="bnext" aria-label="Année suivante">${Y + 1} ›</button></div></div>`;
+  const b = pe.base !== null ? bilanAnnee(st.e, st.p, Y, rcPay()) : null;
+  const L = ecarts(), cM = corrMoy(), cOn = corrOn(), mae = L.length ? L.reduce((a, x) => a + Math.abs(x.d), 0) / L.length : 0;
+  const nav = `<div class="ynav"><button class="btn sm ghost" id="bprev" aria-label="Année précédente">‹ ${Y - 1}</button><span>Paies de janv. à déc.</span><button class="btn sm ghost" id="bnext" aria-label="Année suivante">${Y + 1} ›</button></div>`;
   if (!b) { $("bilan").innerHTML = nav + `<div class="card"><div class="empty"><b>Profil incomplet</b>Renseigne ton NR et ton échelon (Réglages → Modifier) pour calculer le bilan.<br><button class="btn" id="bset">Ouvrir mon profil</button></div></div>`; }
   else {
-    const rows = b.rows.map(r => `<div class="rw2"><span>${MOIS[r.m - 1]}</span><span class="d">${r.extra > 0.5 ? "+ " + eur(r.extra) + " remplac." : "planning seul"}</span><b>${eur(r.net)}</b></div>`).join("");
+    let totR = 0, nR = 0;
+    const rows = b.rows.map(r => { const rv = reels()[rkey(Y, r.m)], est = r.net + (cOn ? cM : 0); totR += rv != null ? rv : est; if (rv != null) nR++;
+      return `<button class="rw2" data-rm="${r.m}"><span>${MOIS[r.m - 1]}${rv != null ? '<span class="tag">réel</span>' : ""}</span><span class="d">${rv != null ? sgn0(rv - r.net) + " vs appli" : r.extra > 0.5 ? "+ " + eur(r.extra) + " remplac." : "planning seul"}</span><span class="rv"><b>${eur(rv != null ? rv : est)}</b>${rv == null ? "<small>estimé</small>" : ""}</span></button>`; }).join("");
+    const fia = `<div class="card"><h2><span>Fiabilité de l'appli</span><span>${L.length} fiche${L.length > 1 ? "s" : ""}</span></h2>
+      ${L.length ? `<div class="kpis"><div><b>${sgn0(cM)}</b><small>écart habituel</small></div><div><b>${eur0(mae)}</b><small>erreur moyenne</small></div><div><b>${L.length ? num(Math.max(0, 100 - mae / (L.reduce((a, x) => a + x.reel, 0) / L.length) * 100), 1) : "–"} %</b><small>précision</small></div></div>
+      <label class="ck" style="padding:4px 16px 4px"><input type="checkbox" id="corr" ${st.p.corrOn ? "checked" : ""}> Corriger mes estimations de l'écart habituel (${sgn0(cM)})</label>` : ""}
+      <p class="hint" style="padding:0 16px 14px;margin:6px 0 0">${L.length ? "Touche un mois ci-dessous pour corriger ou ajouter un net réel." : "Touche un mois ci-dessous et saisis le « Net à payer » de ta fiche : l'appli calcule son écart et peut se corriger."}</p></div>`;
     const ir = b.ir;
     const irHTML = !ir ? `<div class="empty"><b>Parts fiscales non renseignées</b>Ajoute ton nombre de parts, le revenu de ton conjoint et tes crédits d'impôt pour estimer l'impôt.<br><button class="btn" id="bset">Régler mes parts fiscales</button></div>`
       : `<div class="lines2">
@@ -978,16 +1059,19 @@ function renderBil() {
         <div class="big"><span>${b.solde >= 0 ? "Reste à payer" : "À rembourser"}</span><b>${eur(Math.abs(b.solde))}</b></div>
         <div><span>Taux moyen · tranche marginale</span><b>${num(ir.taux * 100)} % · ${Math.round(ir.tmi * 100)} %</b></div>
       </div>`;
-    $("bilan").innerHTML = nav + `<div class="card"><h2><span>Salaire net</span><span>${eur(b.tot.net)}</span></h2><div class="lines2">${rows}
+    $("bilan").innerHTML = nav + fia + `<div class="card"><h2><span>Salaire net</span><span>${eur(b.tot.net)}</span></h2><div class="lines2">${rows}
       <div class="big"><span>Total net payé (avec remplacements)</span><b>${eur(b.tot.net)}</b></div>
       <div><span>dont planning de l'équipe</span><b>${eur(b.tot.plan)}</b></div>
       <div><span>dont remplacements et heures en plus</span><b>+ ${eur(b.tot.extra)}</b></div>
-      <div><span>Moyenne par mois</span><b>${eur(b.tot.net / 12)}</b></div></div>
+      <div><span>Moyenne par mois</span><b>${eur(b.tot.net / 12)}</b></div>
+      ${nR || cOn ? `<div class="big"><span>Total avec ${nR ? "nets réels" : "correction"}${nR && cOn ? " et correction" : ""}</span><b>${eur(totR)}</b></div>` : ""}</div>
       <p class="hint" style="padding:0 16px 12px">La paie de décembre ${Y} paie le travail de novembre ; le travail de décembre est payé en janvier ${Y + 1}.${b.ck ? " Les mois jusqu'à " + MOIS[b.ck - 1] + " utilisent ton cumul réel." : " Les mois passés sont estimés par l'appli (±3 %) ; saisis le cumul de ta dernière fiche dans Réglages pour plus de précision."}</p></div>
       <div class="card"><h2><span>Impôt sur le revenu (estimation)</span></h2>${irHTML}
       <p class="hint" style="padding:0 16px 12px">Barème 2026 (revenus 2025), le plus récent connu. Les heures supplémentaires sont exonérées jusqu'à 7 500 € nets par an. Estimation indicative : ton avis d'imposition fait foi.</p></div>`;
   }
   if ($("bset")) $("bset").onclick = () => openProfile(false);
+  document.querySelectorAll("[data-rm]").forEach(x => x.onclick = () => openReel(Y, +x.dataset.rm));
+  if ($("corr")) $("corr").onchange = ev => { st.p.corrOn = ev.target.checked; save(); refresh(); toast(ev.target.checked ? "Correction activée" : "Correction désactivée"); };
   $("bprev").onclick = () => { if (Y > 2025) { st.p.annee = Y - 1; st.m = null; save(); refresh(); } };
   $("bnext").onclick = () => { if (Y < 2031) { st.p.annee = Y + 1; st.m = null; save(); refresh(); } };
 }
@@ -1016,6 +1100,8 @@ document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => goTab(b
 const step = d => { let y = +st.p.annee, m = curMonth() + d; if (m > 12) { y++; m = 1; } else if (m < 1) { y--; m = 12; } if (y < 2025 || y > 2031) return; st.p.annee = y; st.m = {y, m}; save(); refresh(); };
 $("mprev").onclick = () => step(-1); $("mnext").onclick = () => step(1);
 $("fab").onclick = () => openSheet(defaultDay());
+$("vchk").onclick = () => checkVersion(true);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkVersion(false); });
 document.addEventListener("click", ev => { const b = ev.target.closest("button.day, button.rw"); if (b) openSheet(+b.dataset.n); });
 let tx = 0, ty = 0;
 $("main").addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive: true});
@@ -1034,6 +1120,7 @@ $("reset").onclick = ev => {
 };
 refresh();
 if (!st.ready) onboarding();
+checkVersion(false);
 })();
 </script>
 </body></html>
