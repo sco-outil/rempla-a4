@@ -593,27 +593,30 @@ function renderSim() {
   const sum = rowsM.reduce((a, x) => a + (x.montant || 0), 0), sumRC = rowsM.reduce((a, x) => a + (x.montantRC || 0), 0);
   const pp = P(), rcP = !!st.rc;
   const Mn = M0 === 12 ? 1 : M0 + 1, Yn = M0 === 12 ? Y + 1 : Y, mNext = MOIS[Mn - 1];
-  const bN = bulletin(st.e, st.p, Yn, Mn, rcP, res), bC = bulletin(st.e, st.p, Y, M0, rcP, M0 === 1 ? null : res), v = bN.v;
+  const solo = !!st.solo, eb = solo ? {} : st.e;   // « planning seul » : roulement de l'équipe, sans remplacements ni heures en plus
+  const bN = bulletin(eb, st.p, Yn, Mn, rcP, solo ? null : res), bC = bulletin(eb, st.p, Y, M0, rcP, solo || M0 === 1 ? null : res), v = bN.v;
   const hasBase = pp.base !== null;
   const det = [v.h50 + v.h75 + v.h100 + v.h125 ? `${num(v.h50 + v.h75 + v.h100 + v.h125)} h sup` : "", `${num(v.h390)} h prime horaire`,
     v.f75 + v.f125 ? `${num(v.f75 + v.f125)} h férié` : "", v.dec ? `${num(v.dec)} h décalage` : ""].filter(Boolean).join(" · ");
   $("hero").innerHTML = hasBase ? `<div class="hl">Ma paie de ${mNext} — net estimé</div>
     <div class="amt">${eur(bN.net)}</div>
-    <div class="seg" role="group" aria-label="Repos compensateur"><button data-rc="0" aria-pressed="${!rcP}">RC en repos</button><button data-rc="1" aria-pressed="${rcP}">RC payé</button></div>
+    <div class="seg" role="group" aria-label="Calcul"><button data-solo="0" aria-pressed="${!solo}">Avec mes saisies</button><button data-solo="1" aria-pressed="${solo}">Planning seul</button></div>
+    ${solo ? "" : `<div class="seg" style="margin-top:8px" role="group" aria-label="Repos compensateur"><button data-rc="0" aria-pressed="${!rcP}">RC en repos</button><button data-rc="1" aria-pressed="${rcP}">RC payé</button></div>`}
     <div class="lines">
       <div><span>Fixe de ${mNext}</span><b>${eur(bN.fixe)}</b></div>
       <div><span>Primes de quarts de ${mn}</span><b>+ ${eur(v.total - v.rempl)}</b></div>
-      <div><span>Remplacements de ${mn} (${nRemp})</span><b>+ ${eur(v.rempl)}</b></div>
+      ${solo ? "" : `<div><span>Remplacements de ${mn} (${nRemp})</span><b>+ ${eur(v.rempl)}</b></div>`}
       <div><span>Brut</span><b>${eur(bN.brut)}</b></div>
       <div class="tl"><span>Net à payer en ${mNext}</span><b>${eur(bN.net)}</b></div>
     </div>
-    <div class="sub">Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
+    <div class="sub">${solo ? "Planning de l'équipe seul : sans remplacements ni heures en plus. " : ""}Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
   : `<div class="hl">Mes remplacements — ${mn}</div>
     <div class="amt">${eur(rcP ? sumRC : sum)}</div>
     <div class="seg" role="group" aria-label="Repos compensateur"><button data-rc="0" aria-pressed="${!rcP}">RC en repos</button><button data-rc="1" aria-pressed="${rcP}">RC payé</button></div>
     <div class="lines"><div><span>Salaire et net estimé</span><b><button class="lk" id="setnr">Ajouter mon NR</button></b></div></div>
     <div class="sub">${nRemp} remplacement${nRemp > 1 ? "s" : ""} · montants bruts payés le mois suivant</div>`;
   if ($("setnr")) $("setnr").onclick = () => openProfile(false);
+  document.querySelectorAll("#hero [data-solo]").forEach(b => b.onclick = () => { st.solo = b.dataset.solo === "1"; save(); renderSim(); });
   document.querySelectorAll("#hero [data-rc]").forEach(b => b.onclick = () => { st.rc = b.dataset.rc === "1"; save(); renderSim(); });
   // A4
   const inW = r => r.n >= d1 && r.n <= d2;
