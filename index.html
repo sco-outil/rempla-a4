@@ -596,6 +596,8 @@ function renderSim() {
   const Mn = M0 === 12 ? 1 : M0 + 1, Yn = M0 === 12 ? Y + 1 : Y, mNext = MOIS[Mn - 1];
   const solo = true, eb = {};   // « planning seul » : roulement de l'équipe, sans remplacements ni heures en plus
   const bN = bulletin(eb, st.p, Yn, Mn, rcP, solo ? null : res), bC = bulletin(eb, st.p, Y, M0, rcP, solo || M0 === 1 ? null : res), v = bN.v;
+  const bF = bulletin(st.e, st.p, Yn, Mn, false, res), bFR = bulletin(st.e, st.p, Yn, Mn, true, res);
+  const extra = bF.net - bN.net, extraRC = bFR.net - bN.net, hasExtra = nRemp > 0 || Math.abs(extra) > 0.5;
   const hasBase = pp.base !== null;
   const det = [v.h50 + v.h75 + v.h100 + v.h125 ? `${num(v.h50 + v.h75 + v.h100 + v.h125)} h sup` : "", `${num(v.h390)} h prime horaire`,
     v.f75 + v.f125 ? `${num(v.f75 + v.f125)} h férié` : "", v.dec ? `${num(v.dec)} h décalage` : ""].filter(Boolean).join(" · ");
@@ -608,7 +610,12 @@ function renderSim() {
       <div><span>Total brut</span><b>${eur(bN.brut)}</b></div>
       <div class="tl"><span>Net à payer en ${mNext}</span><b>${eur(bN.net)}</b></div>
     </div>
-    <div class="sub">Roulement de l'équipe seul, sans remplacement ni heure en plus. Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie nette de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
+    ${hasExtra ? `<div class="lines" style="margin-top:10px">
+      <div><span>Mes remplacements et heures en plus (net estimé)</span><b>+ ${eur(extra)}</b></div>
+      <div class="tl2" style="font-size:17px;font-weight:700"><span>Net avec mes remplacements</span><b>${eur(bF.net)}</b></div>
+      <div><span>Si le repos compensateur est payé</span><b>+ ${eur(extraRC - extra)}</b></div>
+    </div>` : ""}
+    <div class="sub">Le net du haut est celui du roulement seul ; tes remplacements s'ajoutent en dessous. Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie nette de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
   : `<div class="hl">Mes remplacements — ${mn} (brut)</div>
     <div class="amt">${eur(rcP ? sumRC : sum)}</div>
     <div class="lines"><div><span>Salaire et net estimé</span><b><button class="lk" id="setnr">Ajouter mon NR</button></b></div></div>
