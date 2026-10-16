@@ -598,17 +598,17 @@ function renderSim() {
   const hasBase = pp.base !== null;
   const det = [v.h50 + v.h75 + v.h100 + v.h125 ? `${num(v.h50 + v.h75 + v.h100 + v.h125)} h sup` : "", `${num(v.h390)} h prime horaire`,
     v.f75 + v.f125 ? `${num(v.f75 + v.f125)} h férié` : "", v.dec ? `${num(v.dec)} h décalage` : ""].filter(Boolean).join(" · ");
-  $("hero").innerHTML = hasBase ? `<div class="hl">Mon salaire de ${mNext} — planning de l'équipe</div>
+  $("hero").innerHTML = hasBase ? `<div class="hl">Mon salaire net de ${mNext} — planning équipe</div>
     <div class="amt">${eur(bN.net)}</div>
     <div class="lines">
-      <div><span>Fixe de ${mNext}</span><b>${eur(bN.fixe)}</b></div>
-      <div><span>Primes de quarts de ${mn} (planning)</span><b>+ ${eur(v.total - v.rempl)}</b></div>
+      <div><span>Fixe de ${mNext} (brut)</span><b>${eur(bN.fixe)}</b></div>
+      <div><span>Primes de quarts de ${mn} (brut)</span><b>+ ${eur(v.total - v.rempl)}</b></div>
       ${solo ? "" : `<div><span>Remplacements de ${mn} (${nRemp})</span><b>+ ${eur(v.rempl)}</b></div>`}
-      <div><span>Brut</span><b>${eur(bN.brut)}</b></div>
+      <div><span>Total brut</span><b>${eur(bN.brut)}</b></div>
       <div class="tl"><span>Net à payer en ${mNext}</span><b>${eur(bN.net)}</b></div>
     </div>
-    <div class="sub">Roulement de l'équipe seul, sans remplacement ni heure en plus. Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
-  : `<div class="hl">Mes remplacements — ${mn}</div>
+    <div class="sub">Roulement de l'équipe seul, sans remplacement ni heure en plus. Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie nette de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
+  : `<div class="hl">Mes remplacements — ${mn} (brut)</div>
     <div class="amt">${eur(rcP ? sumRC : sum)}</div>
     <div class="lines"><div><span>Salaire et net estimé</span><b><button class="lk" id="setnr">Ajouter mon NR</button></b></div></div>
     <div class="sub">${nRemp} remplacement${nRemp > 1 ? "s" : ""} · montants bruts payés le mois suivant</div>`;
@@ -631,7 +631,7 @@ function renderSim() {
     ${st.why ? `<div class="whylist">${it}</div>` : ""}`;
   $("a4tg").onclick = () => { st.why = !st.why; save(); renderSim(); };
   // liste
-  let L = `<h2><span>Remplacements de ${mn}</span><span>${nRemp}</span></h2>`;
+  let L = `<h2><span>Remplacements de ${mn} · montants bruts</span><span>${nRemp}</span></h2>`;
   if (!rowsM.length) L += `<div class="empty"><b>Rien de saisi en ${mn}</b>Ajoute un remplacement pour voir tout de suite le montant et le contrôle A4.<br><button class="btn" id="add1">+ Ajouter un remplacement</button></div>`;
   for (const x of rowsM) {
     const quart = x.quart === "RJ" ? "R/J" : x.quart, main = x.montant === null ? null : x.montant;
