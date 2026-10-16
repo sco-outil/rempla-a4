@@ -453,7 +453,7 @@ function simRows(entries, p, res) {
    Heures sup des remplacements : semaine 50 % (6h-20h) / 100 % (20h-6h) ; samedi, dimanche, férié 75 % / 125 %.
    390 = RC (si payé) + heures à 100 % (JPTUNE) + 3,62 h fixes ; remplacement d'une journée J : RC 8 h + décalage 335 (M 1 h, A 2,25 h).
    Fériés travaillés au roulement : 75 % (6h-20h) / 125 % (20h-6h) ; journées J chômées. Tout est payé le mois suivant. */
-const PAY = {ic10h: 172.5, ic40h: 50.5, ic10: 1.527, ic40: 6.108, ic50: 7.635, fix390: 3.62, panB: 2.11, panN: 9.0, nett: 3.40,
+const PAY = {ic40a: 5.487, ic40b: -29.11, ic10a: 2.919, ic10b: 133.53, ic10h: 172.5, ic40h: 50.5, ic10: 1.527, ic40: 6.108, ic50: 7.635, fix390: 3.62, panB: 2.11, panN: 9.0, nett: 3.40,
   cot: 0.2124, cotHS: 0.1016, nonImp: 0.5};
 const HT = {M: [7.75, 0, 0, 0], A: [6.5, 1.25, 0, 0], N: [0, 3, 0.25, 6]};   // jour 6-20, jour 20-6, lendemain 6-20, lendemain 0-6
 function replDetail(t, key, n, fer, p, rcPaid) {
@@ -503,7 +503,9 @@ function moisVariables(entries, p, res, y, m, rcPaid) {
   v.hs = (v.h50 * 1.5 + v.h75 * 1.75 + v.h100 * 2 + v.h125 * 2.25 + v.dec * 1.5) * th;
   v.e390 = v.h390 * th;
   v.feries = (v.f75 * 1.75 + v.f125 * 2.25) * th;
-  v.ic = PAY.ic10h * PAY.ic10 + PAY.ic40h * PAY.ic40 + v.ic50h * PAY.ic50;
+  // heures d'IC 10 % et 40 % : elles suivent le nombre de quarts réellement faits (calé sur 6 bulletins, r = 0,93 / 0,78)
+  v.ic40h = Math.max(0, PAY.ic40a * v.quarts + PAY.ic40b); v.ic10h = Math.max(0, PAY.ic10a * v.quarts + PAY.ic10b);
+  v.ic = v.ic10h * PAY.ic10 + v.ic40h * PAY.ic40 + v.ic50h * PAY.ic50;
   v.reval = v.ic * 0.05;
   v.penible = +p.penible || 0;
   v.panier = v.quarts * PAY.panB;
