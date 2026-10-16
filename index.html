@@ -749,6 +749,42 @@ function defaultDay() {
 }
 const BIG = [["M","Matin","6h – 13h45"],["A","Après-midi","13h30 – 21h15"],["N","Nuit","21h – 6h15"]];
 const OTHER = [["F8","Formation 8h"],["F4","Formation 4h"],["C","Congé"],["RC","Repos comp."],["HP","Heure perso"],["AM","Maladie"]];
+function openRange(n0) {
+  const Y = +st.p.annee, yMin = D(Y, 1, 1), yMax = D(Y, 12, 31);
+  let a = Math.min(Math.max(n0, yMin), yMax), b = a, onlyShift = true;
+  const draw = () => {
+    if (b < a) b = a;
+    const rr = compute(st.e, P()); let work = 0, off = 0, has = 0;
+    for (let n = a; n <= b; n++) { const r = rr.byN.get(n); const k = iso10(n);
+      if (st.e[k] && st.e[k].s1 === "C") has++;
+      if (r && ["M","A","N"].includes(r.base)) work++; else off++; }
+    const tot = b - a + 1, put = onlyShift ? work : tot;
+    sheet(`<h3>Congés sur plusieurs jours</h3>
+      <div class="sub">C = congé : le quart prévu ce jour-là est retiré du calcul.</div>
+      <div class="lab">Premier jour</div>
+      <div class="dsel"><label>${longDate(a)}<small>touche pour choisir</small><input type="date" id="ra" value="${iso10(a)}" min="${iso10(yMin)}" max="${iso10(yMax)}"></label></div>
+      <div class="lab">Dernier jour</div>
+      <div class="dsel"><label>${longDate(b)}<small>touche pour choisir</small><input type="date" id="rb" value="${iso10(b)}" min="${iso10(a)}" max="${iso10(yMax)}"></label></div>
+      <label class="hint" style="display:flex;gap:8px;align-items:center;margin:12px 0"><input type="checkbox" id="rs" ${onlyShift ? "checked" : ""}> Seulement mes jours de quart (M, A, N)</label>
+      <div class="preview"><div class="msg ok">${tot} jour${tot > 1 ? "s" : ""} sélectionné${tot > 1 ? "s" : ""} · <b>${put}</b> congé${put > 1 ? "s" : ""} à poser (${work} jour${work > 1 ? "s" : ""} de quart, ${off} sans quart)${has ? " · " + has + " déjà en congé" : ""}</div></div>
+      <div class="actions"><button class="btn ghost" id="rcx">Annuler</button>${has ? '<button class="btn danger" id="rdel">Retirer les congés</button>' : ""}<button class="btn" id="rok">Poser</button></div>`, {anim: false, lock: false});
+    $("ra").onchange = ev => { const v = ev.target.value; if (v) { a = D(...v.split("-").map(Number)); if (b < a) b = a; draw(); } };
+    $("rb").onchange = ev => { const v = ev.target.value; if (v) { b = D(...v.split("-").map(Number)); if (b < a) b = a; draw(); } };
+    $("rs").onchange = ev => { onlyShift = ev.target.checked; draw(); };
+    $("rcx").onclick = closeLayer;
+    const snap = () => JSON.stringify(st.e);
+    if ($("rdel")) $("rdel").onclick = () => { const bak = snap();
+      for (let n = a; n <= b; n++) { const k = iso10(n); if (st.e[k] && st.e[k].s1 === "C" && !st.e[k].s2 && !st.e[k].hp) delete st.e[k]; }
+      save(); closeLayer(); refresh(); toast("Congés retirés", "Annuler", () => { st.e = JSON.parse(bak); save(); refresh(); }); };
+    $("rok").onclick = () => { const bak = snap(), rr2 = compute(st.e, P()); let k2 = 0;
+      for (let n = a; n <= b; n++) { const r = rr2.byN.get(n);
+        if (onlyShift && !(r && ["M","A","N"].includes(r.base))) continue;
+        st.e[iso10(n)] = {s1: "C", s2: "", hp: 0}; k2++; }
+      save(); closeLayer(); st.m = {y: Y, m: monN(a)}; refresh();
+      toast(k2 + " jour" + (k2 > 1 ? "s" : "") + " de congé posé" + (k2 > 1 ? "s" : ""), "Annuler", () => { st.e = JSON.parse(bak); save(); refresh(); }); };
+  };
+  draw();
+}
 function openSheet(n0) {
   const Y = +st.p.annee, yMin = D(Y, 1, 1), yMax = D(Y, 12, 31);
   let n = Math.min(Math.max(n0, yMin), yMax), s1, s2, hp, more, existed, first = true;
@@ -783,6 +819,7 @@ function openSheet(n0) {
       <div class="lab">Heures en plus (payées en heures sup. le mois suivant)</div>
       <div class="step"><button id="hm" aria-label="Moins 15 minutes">−</button><output id="hv">${num(hp)} h</output><button id="hpl" aria-label="Plus 15 minutes">+</button></div>`
       : `<button class="more" id="more">Plus d'options : formation, absence, 2e événement, heures en plus</button>`;
+    const rangeBtn = `<button class="more" id="rng">🌴 Poser des congés sur plusieurs jours</button>`;
     const canSave = s1 || s2 || hp;
     sheet(`<h3>${existed ? "Modifier" : "Nouveau"} remplacement</h3>
       <div class="sub">Quart prévu ce jour : ${chip(base)}${r.fer ? " · jour férié" : ""}${isVac(n) ? " · vacances scolaires ☀" : ""}</div>
@@ -793,6 +830,7 @@ function openSheet(n0) {
       <div class="lab">Mes jours sans quart</div><div class="fdrow">${chips || '<span class="hint">Aucun sur ces 2 mois.</span>'}</div>
       <div class="lab">Remplacement</div><div class="tbs">${bigBtns}</div>
       ${moreHTML}
+      ${rangeBtn}
       <div class="preview">${pv}</div>
       <div class="actions"><button class="btn ghost" id="cx">Annuler</button>${existed ? '<button class="btn danger" id="del">Effacer</button>' : ""}
         <button class="btn" id="ok">${canSave ? "Enregistrer" : "Fermer"}</button></div>`, {anim: first, lock: false});
@@ -804,6 +842,7 @@ function openSheet(n0) {
     on("[data-s2].pick", b => { s2 = b.dataset.s2; draw(); });
     $("dprev").onclick = () => setDay(n - 1); $("dnext").onclick = () => setDay(n + 1);
     $("dpick").onchange = ev => { const v = ev.target.value; if (v) setDay(D(...v.split("-").map(Number))); };
+    $("rng").onclick = () => openRange(n);
     if ($("more")) $("more").onclick = () => { more = true; draw(); };
     if ($("hm")) { $("hm").onclick = () => { hp = Math.max(0, hp - .25); draw(); }; $("hpl").onclick = () => { hp = Math.min(8, hp + .25); draw(); }; }
     $("cx").onclick = closeLayer;
