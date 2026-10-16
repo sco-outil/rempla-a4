@@ -472,6 +472,14 @@ function moisVariables(entries, p, res, y, m, rcPaid) {
     const pr = res.byN.get(n - 1);
     const sun = wd(n) === 0 || r.fer;
     const repl = [r.q2, r.q3].filter(Boolean);
+    if (r.hp > 0) {                                      // heures en plus saisies : HS 50 % (6h-20h) / 100 % (20h-6h), x75/x125 dimanche-férié
+      let t = r.fin === null ? 8 : r.fin - r.hp - n * 24;
+      for (let i = 0; i < Math.round(r.hp * 4); i++, t += 0.25) {
+        const hc = ((t % 24) + 24) % 24, nuit = hc >= 20 || hc < 6;
+        const q = 0.25;
+        if (sun) { if (nuit) v.h125 += q; else v.h75 += q; } else if (nuit) v.h100 += q; else v.h50 += q;
+      }
+    }
     const roul = isQ(r.q1) ? r.q1 : "";
     if (roul) { v.quarts++; const h = HT[roul];
       if (r.fer) { v.f75 += h[0]; v.f125 += h[1]; }
@@ -717,7 +725,7 @@ function openSheet(n0) {
     const moreHTML = more ? `
       <div class="lab">Formation ou absence</div>${pk(s1, "s1")}
       <div class="lab">2e événement le même jour</div>${pk(s2, "s2")}
-      <div class="lab">Heures en plus (prolongation)</div>
+      <div class="lab">Heures en plus (payées en heures sup. le mois suivant)</div>
       <div class="step"><button id="hm" aria-label="Moins 15 minutes">−</button><output id="hv">${num(hp)} h</output><button id="hpl" aria-label="Plus 15 minutes">+</button></div>`
       : `<button class="more" id="more">Plus d'options : formation, absence, 2e événement, heures en plus</button>`;
     const canSave = s1 || s2 || hp;
