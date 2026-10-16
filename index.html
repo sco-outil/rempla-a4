@@ -591,33 +591,28 @@ function renderSim() {
   const rowsM = simRows(st.e, P(), res).filter(x => x.n >= d1 && x.n <= dEndM);
   const nRemp = rowsM.filter(x => x.coeff !== null).length;
   const sum = rowsM.reduce((a, x) => a + (x.montant || 0), 0), sumRC = rowsM.reduce((a, x) => a + (x.montantRC || 0), 0);
-  const pp = P(), rcP = !!st.rc;
+  const pp = P(), rcP = false;
   const Mn = M0 === 12 ? 1 : M0 + 1, Yn = M0 === 12 ? Y + 1 : Y, mNext = MOIS[Mn - 1];
-  const solo = !!st.solo, eb = solo ? {} : st.e;   // « planning seul » : roulement de l'équipe, sans remplacements ni heures en plus
+  const solo = true, eb = {};   // « planning seul » : roulement de l'équipe, sans remplacements ni heures en plus
   const bN = bulletin(eb, st.p, Yn, Mn, rcP, solo ? null : res), bC = bulletin(eb, st.p, Y, M0, rcP, solo || M0 === 1 ? null : res), v = bN.v;
   const hasBase = pp.base !== null;
   const det = [v.h50 + v.h75 + v.h100 + v.h125 ? `${num(v.h50 + v.h75 + v.h100 + v.h125)} h sup` : "", `${num(v.h390)} h prime horaire`,
     v.f75 + v.f125 ? `${num(v.f75 + v.f125)} h férié` : "", v.dec ? `${num(v.dec)} h décalage` : ""].filter(Boolean).join(" · ");
-  $("hero").innerHTML = hasBase ? `<div class="hl">Ma paie de ${mNext} — net estimé</div>
+  $("hero").innerHTML = hasBase ? `<div class="hl">Mon salaire de ${mNext} — planning de l'équipe</div>
     <div class="amt">${eur(bN.net)}</div>
-    <div class="seg" role="group" aria-label="Calcul"><button data-solo="0" aria-pressed="${!solo}">Avec mes saisies</button><button data-solo="1" aria-pressed="${solo}">Planning seul</button></div>
-    ${solo ? "" : `<div class="seg" style="margin-top:8px" role="group" aria-label="Repos compensateur"><button data-rc="0" aria-pressed="${!rcP}">RC en repos</button><button data-rc="1" aria-pressed="${rcP}">RC payé</button></div>`}
     <div class="lines">
       <div><span>Fixe de ${mNext}</span><b>${eur(bN.fixe)}</b></div>
-      <div><span>Primes de quarts de ${mn}</span><b>+ ${eur(v.total - v.rempl)}</b></div>
+      <div><span>Primes de quarts de ${mn} (planning)</span><b>+ ${eur(v.total - v.rempl)}</b></div>
       ${solo ? "" : `<div><span>Remplacements de ${mn} (${nRemp})</span><b>+ ${eur(v.rempl)}</b></div>`}
       <div><span>Brut</span><b>${eur(bN.brut)}</b></div>
       <div class="tl"><span>Net à payer en ${mNext}</span><b>${eur(bN.net)}</b></div>
     </div>
-    <div class="sub">${solo ? "Planning de l'équipe seul : sans remplacements ni heures en plus. " : ""}Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
+    <div class="sub">Roulement de l'équipe seul, sans remplacement ni heure en plus. Ce que tu fais en ${mn} est payé en ${mNext}. ${det}. Paie de ${mn} : ${eur(bC.net)}. Estimation ±3 %.</div>`
   : `<div class="hl">Mes remplacements — ${mn}</div>
     <div class="amt">${eur(rcP ? sumRC : sum)}</div>
-    <div class="seg" role="group" aria-label="Repos compensateur"><button data-rc="0" aria-pressed="${!rcP}">RC en repos</button><button data-rc="1" aria-pressed="${rcP}">RC payé</button></div>
     <div class="lines"><div><span>Salaire et net estimé</span><b><button class="lk" id="setnr">Ajouter mon NR</button></b></div></div>
     <div class="sub">${nRemp} remplacement${nRemp > 1 ? "s" : ""} · montants bruts payés le mois suivant</div>`;
   if ($("setnr")) $("setnr").onclick = () => openProfile(false);
-  document.querySelectorAll("#hero [data-solo]").forEach(b => b.onclick = () => { st.solo = b.dataset.solo === "1"; save(); renderSim(); });
-  document.querySelectorAll("#hero [data-rc]").forEach(b => b.onclick = () => { st.rc = b.dataset.rc === "1"; save(); renderSim(); });
   // A4
   const inW = r => r.n >= d1 && r.n <= d2;
   const hmax = Math.max(0, ...res.R.filter(inW).map(r => r.hs));
@@ -639,9 +634,9 @@ function renderSim() {
   let L = `<h2><span>Remplacements de ${mn}</span><span>${nRemp}</span></h2>`;
   if (!rowsM.length) L += `<div class="empty"><b>Rien de saisi en ${mn}</b>Ajoute un remplacement pour voir tout de suite le montant et le contrôle A4.<br><button class="btn" id="add1">+ Ajouter un remplacement</button></div>`;
   for (const x of rowsM) {
-    const quart = x.quart === "RJ" ? "R/J" : x.quart, main = x.montant === null ? null : (st.rc ? x.montantRC : x.montant);
+    const quart = x.quart === "RJ" ? "R/J" : x.quart, main = x.montant === null ? null : x.montant;
     L += `<button class="rw" data-n="${x.n}"><span class="dt"><b>${dayNum(x.n)}</b><small>${JS[wdN(x.n)]}</small></span>
-      <span class="mid"><span class="chips">${chip(x.type)}<span class="hint">sur ${chip(quart)}</span></span>${x.det ? `<small>${detTxt(x.det, st.rc)}${x.ferie ? " · férié" : ""}</small>` : `<small>${x.ferie ? "férié" : "absence / formation"}</small>`}</span>
+      <span class="mid"><span class="chips">${chip(x.type)}<span class="hint">sur ${chip(quart)}</span></span>${x.det ? `<small>${detTxt(x.det, false)}${x.ferie ? " · férié" : ""}</small>` : `<small>${x.ferie ? "férié" : "absence / formation"}</small>`}</span>
       <span class="m">${main !== null ? eur(main) : "—"}</span><span class="a4 l${x.a4}">${["✓","⚠","✖"][x.a4]}</span></button>`;
   }
   $("list").innerHTML = L;
