@@ -444,7 +444,8 @@ const PAY = {ic10h: 172.5, ic40h: 50.5, ic10: 1.527, ic40: 6.108, ic50: 7.635, f
   cot: 0.2124, cotHS: 0.1016, nonImp: 0.5};
 const HT = {M: [7.75, 0, 0, 0], A: [6.5, 1.25, 0, 0], N: [0, 3, 0.25, 6]};   // jour 6-20, jour 20-6, lendemain 6-20, lendemain 0-6
 function replDetail(t, key, n, fer, p, rcPaid) {
-  const c = COEF[key] || [0, 0, 0], th = +p.taux, ctxJ = key.split("|")[1][0] === "J";
+  const c = (COEF[key] || [0, 0, 0]).slice(), th = +p.taux, ctxJ = key.split("|")[1][0] === "J";
+  if (t === "N" && wd(n) === 6 && /^N\|R(R|J)$/.test(key)) c[2] = 2.25;   // note officielle : R puis J ou R = 2 h, 2,25 h si R = samedi
   const h = HT[t], we = wd(n) === 0 || wd(n) === 6 || fer;
   const d = {h50: 0, h75: 0, h100: 0, h125: 0, rc: 0, h100j: c[2], dec: 0, ic50: 0};
   if (ctxJ) { d.rc = (t === "N" ? c[1] : 8); d.dec = t === "M" ? 1 : 2.25; if (t === "A") { d.h50 = 1.75; d.h100 = 2; } }
