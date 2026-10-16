@@ -38,7 +38,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px}
 .top .row{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:1100px;margin:0 auto;min-height:48px}
 .top h1{font-family:var(--f-cond);font-size:20px;letter-spacing:.02em;margin:0;text-transform:uppercase;white-space:nowrap}
-.top .who{font-size:13px;opacity:.85;border:0;background:none;color:inherit;padding:0;text-align:left;display:block}
+.top .who{font-size:13px;opacity:.85;white-space:nowrap;border:0;background:none;color:inherit;padding:0;text-align:left;display:block}
 .top .who.back{opacity:1;font-weight:700;text-decoration:underline}
 .mnav{display:flex;align-items:center;gap:2px}
 .mnav button.ar{background:rgba(255,255,255,.16);border:0;border-radius:10px;width:46px;height:44px;font-size:24px;color:var(--onnavy);line-height:1}
@@ -65,7 +65,18 @@ main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-le
 .seg{display:inline-flex;background:rgba(255,255,255,.16);border-radius:10px;padding:3px}
 .seg button{border:0;background:none;color:#fff;padding:8px 14px;border-radius:8px;font-weight:600;font-size:15px;min-height:40px}
 .seg button[aria-pressed="true"]{background:#fff;color:var(--navy)}
-.hero .sub{font-size:14px;opacity:.9;margin-top:10px}
+.hero .sub{font-size:13px;opacity:.8;margin-top:8px}
+.lines{margin-top:12px;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.lines>div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(255,255,255,.18);font-size:15px}
+.lines>div b{white-space:nowrap}
+.lines .tl{font-size:17px;font-weight:700}.lines .tl b{color:var(--gold)}
+.lk{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:4px 10px;font-weight:700;font-size:14px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pgrid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+.pgrid select,.pgrid input,.ob input.sm{font:inherit;font-size:17px;font-weight:700;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--in);color:var(--fg);padding:0 10px;width:100%}
+.res{margin-top:12px;border-radius:12px;padding:12px 14px;background:var(--ok-bg);color:var(--ok-fg);font-size:15px}
+.res b{font-size:20px;display:block;color:var(--fg)}
+.res.none{background:var(--warn-bg);color:var(--warn-fg)}
 .a4card{width:100%;text-align:left;border:0;border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:34px 1fr 20px;gap:10px;align-items:center}
 .a4card.ok{background:var(--ok-bg);color:var(--ok-fg)}.a4card.warn{background:var(--warn-bg);color:var(--warn-fg)}.a4card.bad{background:var(--bad-bg);color:var(--bad-fg)}
 .a4card .ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff}
@@ -267,8 +278,19 @@ const VACANCES = [["2025-10-18","2025-11-02","Toussaint 2025"],["2025-12-20","20
   ["2026-04-11","2026-04-26","Printemps 2026"],["2026-05-14","2026-05-17","Pont Ascension 2026"],["2026-07-04","2026-08-31","Été 2026"],
   ["2026-10-17","2026-11-01","Toussaint 2026"],["2026-12-19","2027-01-03","Noël 2026"],["2027-02-20","2027-03-07","Hiver 2027"],
   ["2027-04-17","2027-05-02","Printemps 2027"],["2027-05-06","2027-05-09","Pont Ascension 2027"],["2027-07-03","2027-08-31","Été 2027"]];
-const DEFAULTS = {annee: new Date().getFullYear(), equipe: 3, taux: 16.58, samedi: "Jour de la nuit",
+const DEFAULTS = {annee: new Date().getFullYear(), equipe: 3, taux: 16.58, samedi: "Jour de la nuit", gf: "", nr: "", ech: "", zone: "B", snb: 543.18, fixes: 0,
   repos: 11, jour: 10, sem: 48, moy: 40, hebdo: 35, semO: 44, moyO: 38};
+
+/* ===== Grille IEG 2026 (salaire de base) : base = SNB × coef(NR)/100 × MR × A(échelon) ===== */
+const NRC = {50:250.1,55:254.7,60:259.4,65:264.4,70:269.7,75:274.6,80:279.3,85:285.5,90:291.7,95:297.9,100:304.3,105:311.1,110:318.1,115:325.7,120:334.4,125:342.5,130:350.6,135:359.0,140:367.6,145:376.5,150:385.5,155:394.5,160:405.2,165:414.7,170:424.6,175:434.8,180:445.3,185:455.9,190:466.9,195:478.1,200:489.6,205:501.5,210:513.9,215:526.5,220:539.4,225:552.9,230:566.5,235:580.6,240:598.5,245:613.2,250:628.3,255:643.9,260:659.8,265:676.2,270:692.9,275:709.9,280:727.5,285:744.0,290:760.7,295:777.6,300:794.9,305:812.6,310:830.7,315:849.3,320:868.5,325:887.4,330:906.7,340:929.0,350:949.6,355:971.4,360:993.8,365:1016.7,370:1040.0};
+const ECH_A = [1.0,1.06,1.07,1.09,1.12,1.15,1.18,1.22,1.26,1.3,1.315,1.33];
+const ZONES = {"A+":1.25, "A":1.245, "B":1.24};
+function baseSalary(p) {
+  const c = NRC[+p.nr], a = ECH_A[(+p.ech || 0) - 1], mr = ZONES[p.zone];
+  if (!c || !a || !mr) return null;
+  return Math.round(+p.snb * c / 100 * mr * a * 100) / 100;
+}
+function effParams(p) { const b = baseSalary(p); return b ? {...p, taux: Math.round(b / 151.67 * 100) / 100, base: b} : {...p, base: null}; }
 
 const DAY = 86400000;
 const D = (y, m, d) => Date.UTC(y, m - 1, d) / DAY;            // n° de jour (UTC)
@@ -410,7 +432,7 @@ function simRows(entries, p, res) {
   return rows.sort((a, b) => a.n - b.n || a.i - b.i);
 }
 
-
+if (typeof module !== "undefined") module.exports = {compute, simRows, D, ymd, DEFAULTS, baseSalary, effParams, NRC};
 
 </script>
 <script>
@@ -444,7 +466,8 @@ function qcol(code) {
 }
 const chip = c => `<span class="chip" style="background:${qcol(c)}">${esc(c)}</span>`;
 let res;
-const recompute = () => { res = compute(st.e, st.p); };
+const P = () => effParams(st.p);
+const recompute = () => { res = compute(st.e, P()); };
 function curMonth() {
   const Y = +st.p.annee;
   if (st.m && st.m.y === Y) return st.m.m;
@@ -481,14 +504,21 @@ function monthHTML(y, m) {
 /* ---------- vue Simulateur ---------- */
 function renderSim() {
   const Y = +st.p.annee, M0 = curMonth(), [d1, d2] = win(), dEndM = D(Y, M0 + 1, 1) - 1, mn = MOIS[M0 - 1];
-  const rowsM = simRows(st.e, st.p, res).filter(x => x.n >= d1 && x.n <= dEndM);
+  const rowsM = simRows(st.e, P(), res).filter(x => x.n >= d1 && x.n <= dEndM);
   const nRemp = rowsM.filter(x => x.coeff !== null).length;
   const sum = rowsM.reduce((a, x) => a + (x.montant || 0), 0), sumRC = rowsM.reduce((a, x) => a + (x.montantRC || 0), 0);
   const hs = rowsM.reduce((a, x) => a + (x.hsup || 0), 0);
-  $("hero").innerHTML = `<div class="hl">Mon gain en ${mn}</div>
-    <div class="amt">${eur(st.rc ? sumRC : sum)}</div>
+  const pp = P(), fixes = +st.p.fixes || 0, baseTot = pp.base !== null ? pp.base + fixes : null, rempl = st.rc ? sumRC : sum;
+  $("hero").innerHTML = `<div class="hl">${baseTot !== null ? "Salaire brut avec remplacements" : "Mes remplacements"} — ${mn}</div>
+    <div class="amt">${eur(baseTot !== null ? baseTot + rempl : rempl)}</div>
     <div class="seg" role="group" aria-label="Type de montant"><button data-rc="0" aria-pressed="${!st.rc}">Sans RC</button><button data-rc="1" aria-pressed="${st.rc}">Avec RC</button></div>
-    <div class="sub">${nRemp} remplacement${nRemp > 1 ? "s" : ""} · ${num(hs)} h sup · ${st.rc ? "sans RC : " + eur(sum) : "avec RC : " + eur(sumRC)}</div>`;
+    <div class="lines">
+      <div><span>Salaire de base${fixes ? " + éléments fixes" : ""}</span><b>${baseTot !== null ? eur(baseTot) : `<button class="lk" id="setnr">Ajouter mon NR</button>`}</b></div>
+      <div><span>Remplacements (${nRemp}) ${st.rc ? "avec RC" : "sans RC"}</span><b>+ ${eur(rempl)}</b></div>
+      <div class="tl"><span>Salaire avec remplacements</span><b>${baseTot !== null ? eur(baseTot + rempl) : "—"}</b></div>
+    </div>
+    <div class="sub">${num(hs)} h sup · ${st.rc ? "sans RC : " + eur(sum) : "avec RC : " + eur(sumRC)} · montants bruts</div>`;
+  if ($("setnr")) $("setnr").onclick = () => openProfile(false);
   document.querySelectorAll("#hero [data-rc]").forEach(b => b.onclick = () => { st.rc = b.dataset.rc === "1"; save(); renderSim(); });
   // A4
   const inW = r => r.n >= d1 && r.n <= d2;
@@ -533,17 +563,21 @@ function renderYear() {
 function renderPar() {
   const p = st.p, yNow = new Date().getFullYear();
   const yrs = []; for (let y = 2025; y <= Math.max(2031, yNow + 2); y++) yrs.push(y);
+  const pp = P();
   $("form").innerHTML = `
-    <div class="f"><label for="p-eq">Mon équipe<small>Rotation de 49 jours</small></label><select id="p-eq">${[1,2,3,4,5,6,7].map(i => `<option ${+p.equipe === i ? "selected" : ""}>${i}</option>`).join("")}</select></div>
+    <div class="f"><label>Équipe ${p.equipe}${p.gf ? " · GF " + p.gf : ""}${p.nr ? " · NR " + p.nr + " · éch. " + p.ech : ""}
+      <small>${pp.base !== null ? "Salaire de base " + eur(pp.base) + " · taux horaire " + num(pp.taux) + " €/h" : "Taux horaire " + num(+p.taux) + " €/h (NR non renseigné)"}${+p.fixes ? " · éléments fixes " + eur(+p.fixes) : ""}</small></label>
+      <button class="btn sm" id="pedit">Modifier</button></div>
     <div class="f"><label for="p-an">Année</label><select id="p-an">${yrs.map(y => `<option ${+p.annee === y ? "selected" : ""}>${y}</option>`).join("")}</select></div>
-    <div class="f"><label for="p-th">Taux horaire (€/h)<small>Sur ta fiche de paie</small></label><input id="p-th" type="number" inputmode="decimal" step="0.01" min="0" value="${p.taux}"></div>
-    <div class="f"><label for="p-sa">Note A4 « 2,25 si R = samedi »<small>En attente de la réponse du CE</small></label><select id="p-sa">${["Jour de la nuit","Lendemain"].map(v => `<option ${p.samedi === v ? "selected" : ""}>${v}</option>`).join("")}</select></div>`;
+    <div class="f"><label for="p-sa">Note A4 « 2,25 si R = samedi »<small>En attente de la réponse du CE</small></label><select id="p-sa">${["Jour de la nuit","Lendemain"].map(v => `<option ${p.samedi === v ? "selected" : ""}>${v}</option>`).join("")}</select></div>
+    <div class="f"><label for="p-snb">Valeur du SNB (€)<small>Salaire national de base IEG : 543,18 au 1er janvier 2026</small></label><input id="p-snb" type="number" inputmode="decimal" step="0.01" value="${p.snb}"></div>`;
   const S = [["repos","Repos quotidien minimum (h)"],["jour","Durée max de travail par jour (h)"],["sem","Max heures par semaine (dim → sam)"],
     ["moy","Moyenne max sur 12 semaines (h)"],["hebdo","Repos hebdomadaire (24h + 11h)"],["semO","Alerte orange semaine dès (h)"],["moyO","Alerte orange moyenne dès (h)"]];
   $("form2").innerHTML = S.map(([k, l]) => `<div class="f"><label for="s-${k}">${l}</label><input id="s-${k}" type="number" inputmode="decimal" step="0.25" value="${p[k]}"></div>`).join("") +
     `<div class="f"><span class="hint">Valeurs du A4 pointage. Ne les change que si la règle change.</span><button class="btn sm ghost" id="sdef">Valeurs A4</button></div>`;
   const bind = (id, k, f = Number) => { $(id).onchange = ev => { const v = f(ev.target.value); if (f === Number && !isFinite(v)) return; st.p[k] = v; save(); refresh(); toast("Enregistré"); }; };
-  bind("p-eq", "equipe"); bind("p-an", "annee"); bind("p-th", "taux"); bind("p-sa", "samedi", String);
+  bind("p-an", "annee"); bind("p-sa", "samedi", String); bind("p-snb", "snb");
+  $("pedit").onclick = () => openProfile(false);
   S.forEach(([k]) => bind("s-" + k, k));
   $("sdef").onclick = () => { S.forEach(([k]) => st.p[k] = DEFAULTS[k]); save(); refresh(); toast("Seuils A4 remis"); };
   $("bk").value = JSON.stringify({p: st.p, e: st.e});
@@ -574,7 +608,7 @@ function openSheet(n0) {
   const setDay = v => { n = Math.min(Math.max(v, yMin), yMax); load(); draw(); };
   const draw = () => {
     const tmp = {...st.e}; if (s1 || s2 || hp) tmp[iso10(n)] = {s1, s2, hp}; else delete tmp[iso10(n)];
-    const rr = compute(tmp, st.p), r = rr.byN.get(n), rows = simRows(tmp, st.p, rr).filter(x => x.n === n);
+    const rr = compute(tmp, P()), r = rr.byN.get(n), rows = simRows(tmp, P(), rr).filter(x => x.n === n);
     const base = r.base === "R/J" ? "R/J" : r.base, [d1, d2] = win(), fr = freeDays(d1, d2);
     const chips = fr.map(f => `<button class="fd" data-n="${f.n}" aria-pressed="${f.n === n}"><b>${dayNum(f.n)}</b><small>${JS[wdN(f.n)]}</small></button>`).join("");
     let pv = "";
@@ -632,20 +666,49 @@ function openSheet(n0) {
   draw();
 }
 
-/* ---------- premier lancement ---------- */
-function onboarding() {
-  let eq = +st.p.equipe || 3, th = st.p.taux;
+/* ---------- profil (premier lancement et modification) ---------- */
+const NRS = Object.keys(NRC).map(Number).sort((x, y) => x - y);
+const ZLAB = [["B", "24 % (zone B)"], ["A", "24,5 % (zone A)"], ["A+", "25 % (zone A+)"]];
+function onboarding() { openProfile(true); }
+function openProfile(first) {
+  const q = {equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: st.p.ech || "", zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb};
+  let anim = true;
   const draw = () => {
-    sheet(`<div class="ob"><h3>Bienvenue</h3><div class="sub">Deux réglages pour commencer. Tu pourras les changer dans Réglages.</div>
-      <div class="lab">Mon équipe</div><div class="teams">${[1,2,3,4,5,6,7].map(i => `<button data-t="${i}" aria-pressed="${eq === i}">${i}</button>`).join("")}</div>
-      <div class="lab">Mon taux horaire (€/h)</div><input id="obth" type="number" inputmode="decimal" step="0.01" min="0" value="${th}" aria-label="Taux horaire">
-      <p class="hint">Il est sur ta fiche de paie. Tes données restent sur ce téléphone.</p>
-      <div class="actions"><button class="btn" id="obgo">Commencer</button></div>
-      <button class="linkbtn" id="obdemo">Voir d'abord avec des exemples</button></div>`, {anim: false, lock: true});
-    document.querySelectorAll(".teams button").forEach(b => b.onclick = () => { th = $("obth").value; eq = +b.dataset.t; draw(); });
-    const fin = demo => { st.p.equipe = eq; const v = parseFloat($("obth").value); if (isFinite(v) && v > 0) st.p.taux = v; st.ready = true;
-      recompute(); if (demo) loadDemo(); save(); closeLayer(); refresh(); };
-    $("obgo").onclick = () => fin(false); $("obdemo").onclick = () => fin(true);
+    const ep = effParams({...st.p, ...q}), opt = (v, cur, lab) => `<option value="${v}" ${String(cur) === String(v) ? "selected" : ""}>${lab}</option>`;
+    sheet(`<div class="ob"><h3>${first ? "Bienvenue" : "Mon profil"}</h3>
+      <div class="sub">${first ? "Quelques réglages pour commencer. " : ""}Tout reste sur ce téléphone.</div>
+      <div class="lab">Mon équipe</div><div class="teams">${[1,2,3,4,5,6,7].map(i => `<button data-t="${i}" aria-pressed="${q.equipe === i}">${i}</button>`).join("")}</div>
+      <div class="lab">Ma paie (sur ta fiche de paie)</div>
+      <div class="pgrid">
+        <label>GF<select id="q-gf">${opt("", q.gf, "—")}${Array.from({length: 19}, (_, i) => opt(i + 1, q.gf, "GF " + (i + 1))).join("")}</select></label>
+        <label>NR<select id="q-nr">${opt("", q.nr, "Je ne sais pas")}${NRS.map(n => opt(n, q.nr, "NR " + n)).join("")}</select></label>
+        <label>Échelon<select id="q-ech">${opt("", q.ech, "—")}${ECH_A.map((_, i) => opt(i + 1, q.ech, "Échelon " + (i + 1))).join("")}</select></label>
+        <label>Majoration résidentielle<select id="q-zone">${ZLAB.map(([v, l]) => opt(v, q.zone, l)).join("")}</select></label>
+      </div>
+      ${ep.base !== null
+        ? `<div class="res">Salaire de base<b>${eur(ep.base)} brut / mois</b>Taux horaire : ${num(ep.taux)} €/h (salaire ÷ 151,67 h)</div>`
+        : `<div class="res none">Choisis ton NR et ton échelon pour calculer ton salaire de base, ou saisis ton taux horaire :
+            <input id="q-th" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.taux}" aria-label="Taux horaire" style="margin-top:8px"></div>`}
+      <p class="hint">Le GF n'entre pas dans le calcul : c'est le NR et l'échelon qui fixent le salaire de base.</p>
+      <div class="lab">Autres éléments fixes (€/mois, optionnel)</div>
+      <input id="q-fx" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.fixes || ""}" placeholder="0" aria-label="Autres éléments fixes">
+      <p class="hint">Par exemple l'indemnité de service continu ou une gratification, pour coller à ta fiche de paie.</p>
+      <div class="actions">${first ? "" : '<button class="btn ghost" id="qcx">Annuler</button>'}<button class="btn" id="qok">${first ? "Commencer" : "Enregistrer"}</button></div>
+      ${first ? '<button class="linkbtn" id="obdemo">Voir d\'abord avec des exemples</button>' : ""}</div>`, {anim, lock: first});
+    anim = false;
+    document.querySelectorAll(".teams button").forEach(b => b.onclick = () => { q.equipe = +b.dataset.t; draw(); });
+    ["gf", "nr", "ech", "zone"].forEach(k => $("q-" + k).onchange = ev => { q[k] = ev.target.value; if (k === "nr" && q.nr && !q.ech) q.ech = "1"; draw(); });
+    if ($("q-th")) $("q-th").oninput = ev => { q.taux = ev.target.value; };
+    $("q-fx").oninput = ev => { q.fixes = ev.target.value; };
+    const fin = demo => {
+      const th = parseFloat(q.taux), fx = parseFloat(q.fixes);
+      Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0});
+      if (isFinite(th) && th > 0) st.p.taux = th;
+      st.ready = true; recompute(); if (demo) loadDemo(); save(); closeLayer(); refresh(); if (!first) toast("Profil enregistré");
+    };
+    $("qok").onclick = () => fin(false);
+    if ($("qcx")) $("qcx").onclick = closeLayer;
+    if ($("obdemo")) $("obdemo").onclick = () => fin(true);
   };
   draw();
 }
@@ -669,7 +732,7 @@ function refresh() {
   const M0 = curMonth();
   $("mlab").textContent = MOIS[M0 - 1] + " " + st.p.annee;
   const away = st.tab === "sim" && M0 !== realMonth();
-  $("who").textContent = away ? "↺ Revenir à ce mois-ci" : `Équipe ${st.p.equipe} · ${st.p.annee} · ${num(+st.p.taux)} €/h`;
+  $("who").textContent = away ? "↺ Revenir à ce mois-ci" : `Éq. ${st.p.equipe}${st.p.nr ? " · NR " + st.p.nr : ""} · ${num(P().taux)} €/h`;
   $("who").className = "who" + (away ? " back" : "");
   $("who").onclick = away ? () => { st.m = null; save(); refresh(); } : null;
   $("mnav").hidden = st.tab !== "sim";
