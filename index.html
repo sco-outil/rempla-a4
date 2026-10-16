@@ -286,7 +286,7 @@ const NRC = {50:250.1,55:254.7,60:259.4,65:264.4,70:269.7,75:274.6,80:279.3,85:2
 const ECH_A = [1.0,1.06,1.07,1.09,1.12,1.15,1.18,1.22,1.26,1.3,1.315,1.33];
 const ZONES = {"A+":1.25, "A":1.245, "B":1.24};
 function baseSalary(p) {
-  const c = NRC[+p.nr], a = ECH_A[(+p.ech || 0) - 1], mr = ZONES[p.zone];
+  const c = NRC[+p.nr], a = ECH_A[Math.max(4, +p.ech || 0) - 1], mr = ZONES[p.zone];
   if (!c || !a || !mr) return null;
   return Math.round(+p.snb * c / 100 * mr * a * 100) / 100;
 }
@@ -671,7 +671,7 @@ const NRS = Object.keys(NRC).map(Number).sort((x, y) => x - y);
 const ZLAB = [["B", "24 % (zone B)"], ["A", "24,5 % (zone A)"], ["A+", "25 % (zone A+)"]];
 function onboarding() { openProfile(true); }
 function openProfile(first) {
-  const q = {equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: st.p.ech || "", zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb};
+  const q = {equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: (st.p.ech ? Math.max(4, +st.p.ech) : ""), zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb};
   let anim = true;
   const draw = () => {
     const ep = effParams({...st.p, ...q}), opt = (v, cur, lab) => `<option value="${v}" ${String(cur) === String(v) ? "selected" : ""}>${lab}</option>`;
@@ -682,7 +682,7 @@ function openProfile(first) {
       <div class="pgrid">
         <label>GF<select id="q-gf">${opt("", q.gf, "—")}${Array.from({length: 19}, (_, i) => opt(i + 1, q.gf, "GF " + (i + 1))).join("")}</select></label>
         <label>NR<select id="q-nr">${opt("", q.nr, "Je ne sais pas")}${NRS.map(n => opt(n, q.nr, "NR " + n)).join("")}</select></label>
-        <label>Échelon<select id="q-ech">${opt("", q.ech, "—")}${ECH_A.map((_, i) => opt(i + 1, q.ech, "Échelon " + (i + 1))).join("")}</select></label>
+        <label>Échelon<select id="q-ech">${opt("", q.ech, "—")}${ECH_A.map((_, i) => i < 3 ? "" : opt(i + 1, q.ech, "Échelon " + (i + 1))).join("")}</select></label>
         <label>Majoration résidentielle<select id="q-zone">${ZLAB.map(([v, l]) => opt(v, q.zone, l)).join("")}</select></label>
       </div>
       ${ep.base !== null
@@ -697,7 +697,7 @@ function openProfile(first) {
       ${first ? '<button class="linkbtn" id="obdemo">Voir d\'abord avec des exemples</button>' : ""}</div>`, {anim, lock: first});
     anim = false;
     document.querySelectorAll(".teams button").forEach(b => b.onclick = () => { q.equipe = +b.dataset.t; draw(); });
-    ["gf", "nr", "ech", "zone"].forEach(k => $("q-" + k).onchange = ev => { q[k] = ev.target.value; if (k === "nr" && q.nr && !q.ech) q.ech = "1"; draw(); });
+    ["gf", "nr", "ech", "zone"].forEach(k => $("q-" + k).onchange = ev => { q[k] = ev.target.value; if (k === "nr" && q.nr && !q.ech) q.ech = "4"; draw(); });
     if ($("q-th")) $("q-th").oninput = ev => { q.taux = ev.target.value; };
     $("q-fx").oninput = ev => { q.fixes = ev.target.value; };
     const fin = demo => {
