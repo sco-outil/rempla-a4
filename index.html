@@ -35,12 +35,13 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--navy);color:var(--onnavy);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px}
 .top .row{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:1100px;margin:0 auto;min-height:48px}
-.top h1{font-family:var(--f-cond);font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0;white-space:nowrap}
+.top .tt{flex:1 1 auto;min-width:0}.top h1,.top .who{overflow:hidden;text-overflow:ellipsis;max-width:100%}.mnav{flex:0 0 auto}
+.top h1{font-family:var(--f-cond);font-size:clamp(18px,5.6vw,22px);font-weight:700;letter-spacing:-.01em;margin:0;white-space:nowrap}
 .top .who{font-size:14px;opacity:.85;min-height:28px;white-space:nowrap;border:0;background:none;color:inherit;padding:0;text-align:left;display:block}
 .top .who.back{opacity:1;font-weight:700;text-decoration:underline}
 .mnav{display:flex;align-items:center;gap:2px}
-.mnav button.ar{background:rgba(255,255,255,.16);border:0;border-radius:12px;width:44px;height:44px;font-size:24px;color:var(--onnavy);line-height:1}
-.mnav .ml{font-family:var(--f-cond);font-weight:600;min-width:92px;text-align:center;font-size:17px;text-transform:capitalize;line-height:1.15}
+.mnav button.ar{background:rgba(255,255,255,.16);border:0;border-radius:12px;width:44px;height:44px;flex:0 0 44px;font-size:24px;color:var(--onnavy);line-height:1}
+.mnav .ml{font-family:var(--f-cond);font-weight:600;min-width:0;max-width:96px;font-size:clamp(14px,4.3vw,17px)!important;text-align:center;font-size:17px;text-transform:capitalize;line-height:1.15}
 main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:14px calc(150px + env(safe-area-inset-bottom,0px))}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:flex;
@@ -298,7 +299,9 @@ const COEF = { // clé : [coeff × TH, RC (h), H 100 %]
 const VACANCES = [["2025-10-18","2025-11-02","Toussaint 2025"],["2025-12-20","2026-01-04","Noël 2025"],["2026-02-14","2026-03-01","Hiver 2026"],
   ["2026-04-11","2026-04-26","Printemps 2026"],["2026-05-14","2026-05-17","Pont Ascension 2026"],["2026-07-04","2026-08-31","Été 2026"],
   ["2026-10-17","2026-11-01","Toussaint 2026"],["2026-12-19","2027-01-03","Noël 2026"],["2027-02-20","2027-03-07","Hiver 2027"],
-  ["2027-04-17","2027-05-02","Printemps 2027"],["2027-05-06","2027-05-09","Pont Ascension 2027"],["2027-07-03","2027-08-31","Été 2027"]];
+  ["2027-04-17","2027-05-02","Printemps 2027"],["2027-05-06","2027-05-09","Pont Ascension 2027"],["2027-07-03","2027-08-31","Été 2027"],
+  ["2027-10-23","2027-11-07","Toussaint 2027"],["2027-12-18","2028-01-02","Noël 2027"],["2028-02-05","2028-02-20","Hiver 2028"],
+  ["2028-04-08","2028-04-23","Printemps 2028"],["2028-05-25","2028-05-28","Pont Ascension 2028"],["2028-07-05","2028-08-31","Été 2028"]];
 const DEFAULTS = {annee: new Date().getFullYear(), equipe: 3, taux: 16.58, samedi: "Jour de la nuit", gf: "", nr: "", ech: "", zone: "B", snb: 543.18, fixes: 0,
   conduite: 1, energie: 153.28, loyer: 0, pas: 0, penible: 103.15, gratCET: 0,
   repos: 11, jour: 10, sem: 48, moy: 40, hebdo: 35, semO: 44, moyO: 38};
@@ -613,7 +616,7 @@ const monN = n => new Date(n * 864e5).getUTCMonth() + 1;
 const MABR = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const longDate = n => `${JS[wdN(n)]} ${dayNum(n)} ${MABR[monN(n) - 1]} ${parts(n)[0]}`;
 const FREE = ["R", "H", "R/J"];
-const VERSION = "2026.10.17.1";
+const VERSION = "2026.10.17.2";
 const rkey = (y, m) => `${y}-${String(m).padStart(2, "0")}`;
 const reels = () => st.p.reels || {};
 const rcPay = () => st.p.rcPaye !== false;   // par défaut : RC payés (choix dans Réglages)
@@ -774,7 +777,7 @@ const CODES = [["M","M","Matin · 6h00 → 13h45"],["A","A","Après-midi · 13h3
   ["R/J","R/J","Repos ou journée selon le roulement"],["M★","M★","Remplacement saisi (★)"],["C","C","Congé : le quart prévu est retiré"],
   ["RC","RC","Repos compensateur"],["HP","HP","Heure perso"],["AM","AM","Arrêt maladie"],["F8","F8/F4","Formation 8 h / 4 h"]];
 const codesHTML = () => CODES.map(([c, t, d]) => `<span class="chip" style="background:${qcol(c)}">${t}</span><span>${d}</span>`).join("") +
-  `<span class="chip" style="background:var(--vac);color:#000">☀</span><span>Vacances scolaires (zone de ton profil)</span>
+  `<span class="chip" style="background:var(--vac);color:#000">☀</span><span>Vacances scolaires zone B (Normandie)</span>
    <span class="chip" style="background:var(--warn);color:#fff">⚠</span><span>Point A4 à surveiller</span>
    <span class="chip" style="background:var(--bad);color:#fff">✖</span><span>Écart A4 à corriger</span>`;
 function renderYear() {
@@ -795,12 +798,12 @@ function renderPar() {
     <div class="f"><label for="p-an">Année</label><select id="p-an">${yrs.map(y => `<option ${+p.annee === y ? "selected" : ""}>${y}</option>`).join("")}</select></div>
     <div class="f"><label for="p-rc">Mes repos compensateurs (RC)<small>Payés en heures, ou pris en repos</small></label><select id="p-rc"><option value="1" ${rcPay() ? "selected" : ""}>Payés</option><option value="0" ${rcPay() ? "" : "selected"}>Compensés</option></select></div>
     <div class="f"><label for="p-sa">Note A4 « 2,25 si R = samedi »<small>En attente de la réponse du CE</small></label><select id="p-sa">${["Jour de la nuit","Lendemain"].map(v => `<option ${p.samedi === v ? "selected" : ""}>${v}</option>`).join("")}</select></div>
-    <div class="f"><label for="p-snb">Valeur du SNB (€)<small>Salaire national de base IEG : 543,18 au 1er janvier 2026</small></label><input id="p-snb" type="number" inputmode="decimal" step="0.01" value="${p.snb}"></div>`;
+    <div class="f"><label for="p-snb">Valeur du SNB (€)<small>Salaire national de base IEG : 543,18 au 1er janvier 2026</small></label><input id="p-snb" type="text" inputmode="decimal" autocomplete="off" value="${String(p.snb).replace(".", ",")}"></div>`;
   const S = [["repos","Repos quotidien minimum (h)"],["jour","Durée max de travail par jour (h)"],["sem","Max heures par semaine (dim → sam)"],
     ["moy","Moyenne max sur 12 semaines (h)"],["hebdo","Repos hebdomadaire (24h + 11h)"],["semO","Alerte orange semaine dès (h)"],["moyO","Alerte orange moyenne dès (h)"]];
-  $("form2").innerHTML = S.map(([k, l]) => `<div class="f"><label for="s-${k}">${l}</label><input id="s-${k}" type="number" inputmode="decimal" step="0.25" value="${p[k]}"></div>`).join("") +
+  $("form2").innerHTML = S.map(([k, l]) => `<div class="f"><label for="s-${k}">${l}</label><input id="s-${k}" type="text" inputmode="decimal" autocomplete="off" value="${String(p[k]).replace(".", ",")}"></div>`).join("") +
     `<div class="f"><span class="hint">Valeurs du A4 pointage. Ne les change que si la règle change.</span><button class="btn sm ghost" id="sdef">Valeurs A4</button></div>`;
-  const bind = (id, k, f = Number) => { $(id).onchange = ev => { const v = f(ev.target.value); if (f === Number && !isFinite(v)) return; st.p[k] = v; save(); refresh(); toast("Enregistré"); }; };
+  const bind = (id, k, f = parseEur) => { $(id).onchange = ev => { const v = f(ev.target.value); if (f === parseEur && !isFinite(v)) { toast("Valeur non reconnue"); return; } st.p[k] = v; save(); refresh(); toast("Enregistré"); }; };
   $("p-rc").onchange = ev => { st.p.rcPaye = ev.target.value === "1"; save(); refresh(); toast(st.p.rcPaye ? "RC payés" : "RC compensés en repos"); };
   bind("p-an", "annee"); bind("p-sa", "samedi", String); bind("p-snb", "snb");
   $("pedit").onclick = () => openProfile(false);
@@ -955,27 +958,27 @@ function openProfile(first) {
       ${ep.base !== null
         ? `<div class="res">Salaire de base<b>${eur(ep.base)} brut / mois</b>Taux horaire : ${num(ep.taux)} €/h (salaire ÷ 151,67 h)</div>`
         : `<div class="res none">Choisis ton NR et ton échelon pour calculer ton salaire de base, ou saisis ton taux horaire :
-            <input id="q-th" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.taux}" aria-label="Taux horaire" style="margin-top:8px"></div>`}
+            <input id="q-th" class="sm" type="text" inputmode="decimal" autocomplete="off" step="0.01" min="0" value="${q.taux}" aria-label="Taux horaire" style="margin-top:8px"></div>`}
       <label class="lab2" style="display:block;margin:10px 0 4px;font-size:13px">Prochain échelon à partir de (mois)<input id="q-en2" class="sm" type="month" value="${q.echNext || ""}" min="2025-01" max="2040-12" style="margin-top:4px"></label>
       <p class="hint">Facultatif. Si tu le renseignes, le salaire passe automatiquement à l'échelon suivant à cette date, puis aux suivants selon la grille IEG (ex. 4→5 : 2 ans, 5→6 : 3,5 ans, 6→7 : 3,5 ans, 7→8 : 4 ans).</p>
       <p class="hint">Le GF n'entre pas dans le calcul : c'est le NR et l'échelon qui fixent le salaire de base.</p>
       <div class="lab">Pour estimer ton net (lignes de ta fiche de paie)</div>
       <label class="ck"><input type="checkbox" id="q-cd" ${+q.conduite ? "checked" : ""}> Complément conduite nucléaire 10 % (005)</label>
       <div class="pgrid">
-        <label>Autres fixes €/mois<input id="q-fx" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.fixes || ""}" placeholder="0"></label>
-        <label>Forfait énergie (058)<input id="q-en" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.energie}"></label>
-        <label>Loyer retenu (284)<input id="q-ly" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.loyer || ""}" placeholder="0"></label>
-        <label>Taux impôt (PAS %)<input id="q-pas" class="sm" type="number" inputmode="decimal" step="0.1" min="0" value="${q.pas || ""}" placeholder="0"></label>
+        <label>Autres fixes €/mois<input id="q-fx" class="sm" type="text" inputmode="decimal" autocomplete="off" step="0.01" min="0" value="${q.fixes || ""}" placeholder="0"></label>
+        <label>Forfait énergie (058)<input id="q-en" class="sm" type="text" inputmode="decimal" autocomplete="off" step="0.01" min="0" value="${q.energie}"></label>
+        <label>Loyer retenu (284)<input id="q-ly" class="sm" type="text" inputmode="decimal" autocomplete="off" step="0.01" min="0" value="${q.loyer || ""}" placeholder="0"></label>
+        <label>Taux impôt (PAS %)<input id="q-pas" class="sm" type="text" inputmode="decimal" autocomplete="off" step="0.1" min="0" value="${q.pas || ""}" placeholder="0"></label>
       </div>
       <p class="hint">Autres fixes = total des lignes 031, 20B, 557, 612 et 060. Le forfait énergie est ajouté au brut puis repris sur le net, comme sur ta fiche.</p>
       <div class="lab">Impôt sur le revenu (pour le bilan de l'année)</div>
       <div class="pgrid">
         <label>Parts fiscales<select id="q-parts">${opt("", q.parts, "—")}${[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map(v => opt(v, q.parts, String(v).replace(".", ",") + " part" + (v > 1 ? "s" : ""))).join("")}</select></label>
-        <label>Net imposable conjoint (€/an)<input id="q-conj" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impConj || ""}" placeholder="0"></label>
-        <label>Autres revenus nets (€/an)<input id="q-aut" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impAutres || ""}" placeholder="0"></label>
-        <label>Charges déductibles (€/an)<input id="q-chg" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impCharges || ""}" placeholder="0"></label>
-        <label>Réductions / crédits d'impôt (€/an)<input id="q-cred" class="sm" type="number" inputmode="decimal" step="1" min="0" value="${q.impCredits || ""}" placeholder="0"></label>
-        <label>Cumul net imposable de ma dernière fiche (€)<input id="q-cum" class="sm" type="number" inputmode="decimal" step="0.01" min="0" value="${q.impCumul || ""}" placeholder="facultatif"></label>
+        <label>Net imposable conjoint (€/an)<input id="q-conj" class="sm" type="text" inputmode="decimal" autocomplete="off" step="1" min="0" value="${q.impConj || ""}" placeholder="0"></label>
+        <label>Autres revenus nets (€/an)<input id="q-aut" class="sm" type="text" inputmode="decimal" autocomplete="off" step="1" min="0" value="${q.impAutres || ""}" placeholder="0"></label>
+        <label>Charges déductibles (€/an)<input id="q-chg" class="sm" type="text" inputmode="decimal" autocomplete="off" step="1" min="0" value="${q.impCharges || ""}" placeholder="0"></label>
+        <label>Réductions / crédits d'impôt (€/an)<input id="q-cred" class="sm" type="text" inputmode="decimal" autocomplete="off" step="1" min="0" value="${q.impCredits || ""}" placeholder="0"></label>
+        <label>Cumul net imposable de ma dernière fiche (€)<input id="q-cum" class="sm" type="text" inputmode="decimal" autocomplete="off" step="0.01" min="0" value="${q.impCumul || ""}" placeholder="facultatif"></label>
         <label>… arrêté à la paie de<select id="q-cumm">${opt("", q.impCumulMois, "—")}${MOIS.map((n, i) => opt(i + 1, q.impCumulMois, n)).join("")}</select></label>
       </div>
       <p class="hint">Parts : couple 2, +0,5 par enfant (le 3e compte 1). Conjoint : son « revenu net imposable » annuel. Charges : pensions versées, dons, etc. Crédits : garde d'enfant, emploi à domicile… Le cumul se lit en bas de ta fiche de paie (« Revenu net imposable », colonne annuelle).</p>
@@ -1001,9 +1004,9 @@ function openProfile(first) {
     $("q-ly").oninput = ev => { q.loyer = ev.target.value; };
     $("q-pas").oninput = ev => { q.pas = ev.target.value; };
     const fin = demo => {
-      const th = parseFloat(q.taux), fx = parseFloat(q.fixes);
-      Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, echNext: q.echNext || "", parts: q.parts || "", impConj: Math.max(0, parseFloat(q.impConj) || 0), impAutres: Math.max(0, parseFloat(q.impAutres) || 0), impCharges: Math.max(0, parseFloat(q.impCharges) || 0), impCredits: Math.max(0, parseFloat(q.impCredits) || 0), impCumul: Math.max(0, parseFloat(q.impCumul) || 0), impCumulMois: q.impCumulMois || "", zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0,
-        conduite: q.conduite, gratCET: q.gratCET, energie: Math.max(0, parseFloat(q.energie) || 0), loyer: Math.max(0, parseFloat(q.loyer) || 0), pas: Math.max(0, parseFloat(q.pas) || 0)});
+      const th = parseEur(q.taux), fx = parseEur(q.fixes);
+      Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, echNext: q.echNext || "", parts: q.parts || "", impConj: Math.max(0, parseEur(q.impConj) || 0), impAutres: Math.max(0, parseEur(q.impAutres) || 0), impCharges: Math.max(0, parseEur(q.impCharges) || 0), impCredits: Math.max(0, parseEur(q.impCredits) || 0), impCumul: Math.max(0, parseEur(q.impCumul) || 0), impCumulMois: q.impCumulMois || "", zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0,
+        conduite: q.conduite, gratCET: q.gratCET, energie: Math.max(0, parseEur(q.energie) || 0), loyer: Math.max(0, parseEur(q.loyer) || 0), pas: Math.max(0, parseEur(q.pas) || 0)});
       if (isFinite(th) && th > 0) st.p.taux = th;
       st.ready = true; recompute(); if (demo) loadDemo(); save(); closeLayer(); refresh(); if (!first) toast("Profil enregistré");
     };
