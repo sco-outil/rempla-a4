@@ -1,0 +1,9 @@
+{
+  "name": "Optimiseur d'impôts",
+  "short_name": "Optimiseur impôts",
+  "lang": "fr",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#EEF1F6",
+  "theme_color": "#1B4DDB"
+}
