@@ -482,7 +482,8 @@ function replDetail(t, key, n, fer, p, rcPaid) {
   if (t === "N" && wd(n) === 6 && /^N\|R(R|J)$/.test(key)) c[2] = 2.25;   // note officielle : R puis J ou R = 2 h, 2,25 h si R = samedi
   const h = HT[t], we = wd(n) === 0 || wd(n) === 6 || fer;
   const d = {h50: 0, h75: 0, h100: 0, h125: 0, rc: 0, h100j: c[2], dec: 0, ic50: 0};
-  if (ctxJ) { d.rc = (t === "N" ? c[1] : 8); d.dec = t === "M" ? 1 : 2.25; if (t === "A") { d.h50 = 1.75; d.h100 = 2; } }
+  const jh = ctxJ ? ((SH[baseOf(n, +p.equipe)] || [0, 0, 8])[2] || 8) : 0;
+  if (ctxJ) { d.rc = (t === "N" ? c[1] + jh : 8); d.dec = t === "M" ? 1 : 2.25; if (t === "A") { d.h50 = 1.75; d.h100 = 2; } }
   else { d.rc = c[1]; if (we) { d.h75 = h[0] + h[2]; d.h125 = h[1] + h[3]; } else { d.h50 = h[0] + h[2]; d.h100 = h[1] + h[3]; } }
   if (wd(n) === 0 || fer) d.ic50 += h[0] + h[1];
   if (wd(n + 1) === 0 || isFerie(n + 1)) d.ic50 += h[2] + h[3];
@@ -536,6 +537,8 @@ function moisVariables(entries, p, res, y, m, rcPaid) {
   return v;
 }
 /* bulletin du mois (y, m) = fixe du mois + variables du mois précédent */
+const G13 = {6: 0.5, 11: 0.4, 12: 0.1};
+const cetOf = (p, m) => !!+(m === 6 ? p.gratCET : m === 11 ? p.cetNov : m === 12 ? p.cetDec : 0);
 function bulletin(entries, p, y, m, rcPaid, resCache) {
   const pe = effParams(p, y, m);
   const py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1;
@@ -543,13 +546,14 @@ function bulletin(entries, p, y, m, rcPaid, resCache) {
   const v = moisVariables(entries, pe, res, py, pm, rcPaid);
   const base = pe.base || 0, conduite = +p.conduite ? base * 0.1 : 0, energie = +p.energie || 0;
   const fixe = base + conduite + (+p.fixes || 0) + energie;
-  const grat = m === 6 ? base / 2 : 0;                   // gratification de fin d'année (030), bulletin de juin
-  const brut = fixe + v.total + (+p.gratCET ? 0 : grat);
-  const cot = brut * PAY.cot - v.hsTot * PAY.cotHS + (+p.gratCET ? grat * 0.178 : 0);
+  const grat = base * (G13[m] || 0);                    // 13e mois (030) : 50 % juin, 40 % novembre, 10 % décembre
+  const gcet = grat > 0 && cetOf(p, m);                  // versé sur le CET (713) : retiré du net, cotisations dues
+  const brut = fixe + v.total + (gcet ? 0 : grat);
+  const cot = brut * PAY.cot - v.hsTot * PAY.cotHS + (gcet ? grat * 0.178 : 0);
   const mns = brut - cot;
   const pas = Math.max(0, mns - v.hsTot * PAY.nonImp) * (+p.pas || 0) / 100;
   const net = mns - pas - (+p.loyer || 0) - energie + v.quarts * (PAY.panN + PAY.nett);
-  return {fixe, base, conduite, energie, grat, v, brut, cot, mns, pas, net, py, pm};
+  return {fixe, base, conduite, energie, grat, gcet, v, brut, cot, mns, pas, net, py, pm};
 }
 
 /* ===== Bilan annuel et estimation de l'impôt sur le revenu =====
@@ -591,7 +595,7 @@ function bilanAnnee(entries, p, Y, rcPaid) {
   const pasTot = pas + knownPas;
   return {rows, tot, sal1, pas: pasTot, ir, solde: ir ? ir.impot - pasTot : null, ck};
 }
-if (typeof module !== "undefined") module.exports = {impotRevenu, bilanAnnee, IR, echAt, compute, simRows, D, ymd, DEFAULTS, baseSalary, effParams, NRC, moisVariables, bulletin, replDetail, PAY, codeOf, isFerie, wd};
+if (typeof module !== "undefined") module.exports = {G13, impotRevenu, bilanAnnee, IR, echAt, compute, simRows, D, ymd, DEFAULTS, baseSalary, effParams, NRC, moisVariables, bulletin, replDetail, PAY, codeOf, isFerie, wd};
 
 </script>
 <script>
@@ -616,7 +620,7 @@ const monN = n => new Date(n * 864e5).getUTCMonth() + 1;
 const MABR = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const longDate = n => `${JS[wdN(n)]} ${dayNum(n)} ${MABR[monN(n) - 1]} ${parts(n)[0]}`;
 const FREE = ["R", "H", "R/J"];
-const VERSION = "2026.10.17.2";
+const VERSION = "2026.10.24.1";
 const rkey = (y, m) => `${y}-${String(m).padStart(2, "0")}`;
 const reels = () => st.p.reels || {};
 const rcPay = () => st.p.rcPaye !== false;   // par défaut : RC payés (choix dans Réglages)
@@ -727,6 +731,7 @@ function renderSim() {
       ${hasExtra ? `<div class="tl"><span>+ Remplacements et heures en plus (net)</span><b>+ ${eur(extra)}</b></div>
       ${rcDiff > 0.5 ? `<div style="opacity:.8"><span>${rcPay() ? "dont repos compensateur payé" : "Si tu te faisais payer tes RC"}</span><b>+ ${eur(rcDiff)}</b></div>` : ""}` : ""}
       ${cOn ? `<div><span>Correction d'après tes fiches (${nE} mois)</span><b>${sgn(cM)}</b></div>` : ""}
+      ${bF.grat > 0 ? `<div><span>13e mois (${Math.round(G13[Mn] * 100)} %)${bF.gcet ? " · mis sur le CET" : " · inclus"}</span><b>${bF.gcet ? "CET " : "+ "}${eur(bF.grat)} brut</b></div>` : ""}
       <div style="opacity:.75"><span>Planning en brut : fixe ${eur(bN.fixe)} + primes de quarts ${eur(v.total - v.rempl)}</span><b>${eur(bN.brut)}</b></div>
     </div>
     <div class="rl"><span>Paie de ${mn}<small>appli ${eur(estC)}${rC != null ? ` · écart <span class="${rC - estC >= 0 ? "up" : "dn"}">${sgn(rC - estC)}</span>` : ""}</small></span>${rC != null ? `<button class="lk ghost" id="hreel">réel ${eur(rC)}</button>` : `<button class="lk" id="hreel">Saisir le net réel</button>`}</div>
@@ -941,7 +946,7 @@ const NRS = Object.keys(NRC).map(Number).sort((x, y) => x - y);
 const ZLAB = [["B", "24 % (zone B)"], ["A", "24,5 % (zone A)"], ["A+", "25 % (zone A+)"]];
 function onboarding() { openProfile(true); }
 function openProfile(first) {
-  const q = {parts: st.p.parts || "", impConj: st.p.impConj || "", impAutres: st.p.impAutres || "", impCharges: st.p.impCharges || "", impCredits: st.p.impCredits || "", impCumul: st.p.impCumul || "", impCumulMois: st.p.impCumulMois || "", echNext: st.p.echNext || "", equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: (st.p.ech ? Math.max(4, +st.p.ech) : ""), zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb, conduite: st.p.conduite ?? 1, energie: st.p.energie ?? 153.28, loyer: +st.p.loyer || 0, pas: +st.p.pas || 0, gratCET: +st.p.gratCET || 0};
+  const q = {parts: st.p.parts || "", impConj: st.p.impConj || "", impAutres: st.p.impAutres || "", impCharges: st.p.impCharges || "", impCredits: st.p.impCredits || "", impCumul: st.p.impCumul || "", impCumulMois: st.p.impCumulMois || "", echNext: st.p.echNext || "", equipe: +st.p.equipe || 3, gf: st.p.gf || "", nr: st.p.nr || "", ech: (st.p.ech ? Math.max(4, +st.p.ech) : ""), zone: st.p.zone || "B", fixes: +st.p.fixes || 0, taux: st.p.taux, snb: st.p.snb, conduite: st.p.conduite ?? 1, energie: st.p.energie ?? 153.28, loyer: +st.p.loyer || 0, pas: +st.p.pas || 0, gratCET: +st.p.gratCET || 0, cetNov: +st.p.cetNov || 0, cetDec: +st.p.cetDec || 0};
   let anim = true;
   const draw = () => {
     const ep = effParams({...st.p, ...q}), opt = (v, cur, lab) => `<option value="${v}" ${String(cur) === String(v) ? "selected" : ""}>${lab}</option>`;
@@ -982,7 +987,13 @@ function openProfile(first) {
         <label>… arrêté à la paie de<select id="q-cumm">${opt("", q.impCumulMois, "—")}${MOIS.map((n, i) => opt(i + 1, q.impCumulMois, n)).join("")}</select></label>
       </div>
       <p class="hint">Parts : couple 2, +0,5 par enfant (le 3e compte 1). Conjoint : son « revenu net imposable » annuel. Charges : pensions versées, dons, etc. Crédits : garde d'enfant, emploi à domicile… Le cumul se lit en bas de ta fiche de paie (« Revenu net imposable », colonne annuelle).</p>
-      <label class="ck"><input type="checkbox" id="q-cet" ${+q.gratCET ? "checked" : ""}> Gratification de juin mise sur le CET</label>
+      <div class="lab">13e mois (gratification 030, sur le salaire de base)</div>
+      <div class="pgrid">
+        <label>Juin · 50 %<select id="q-g6">${opt(0, q.gratCET, "Payé")}${opt(1, q.gratCET, "Sur le CET")}</select></label>
+        <label>Novembre · 40 %<select id="q-g11">${opt(0, q.cetNov, "Payé")}${opt(1, q.cetNov, "Sur le CET")}</select></label>
+        <label>Décembre · 10 %<select id="q-g12">${opt(0, q.cetDec, "Payé")}${opt(1, q.cetDec, "Sur le CET")}</select></label>
+      </div>
+      <p class="hint">Sur le CET, le montant est épargné (ligne 713) : il n'arrive pas sur ton compte mais les cotisations sont prélevées.</p>
       <div class="actions">${first ? "" : '<button class="btn ghost" id="qcx">Annuler</button>'}<button class="btn" id="qok">${first ? "Commencer" : "Enregistrer"}</button></div>
       ${first ? '<button class="linkbtn" id="obdemo">Voir d\'abord avec des exemples</button>' : ""}</div>`, {anim, lock: first});
     anim = false;
@@ -999,14 +1010,16 @@ function openProfile(first) {
     $("q-cumm").onchange = ev => { q.impCumulMois = ev.target.value; };
     $("q-en2").onchange = ev => { q.echNext = ev.target.value; };
     $("q-cd").onchange = ev => { q.conduite = ev.target.checked ? 1 : 0; };
-    $("q-cet").onchange = ev => { q.gratCET = ev.target.checked ? 1 : 0; };
+    $("q-g6").onchange = ev => { q.gratCET = +ev.target.value; };
+    $("q-g11").onchange = ev => { q.cetNov = +ev.target.value; };
+    $("q-g12").onchange = ev => { q.cetDec = +ev.target.value; };
     $("q-en").oninput = ev => { q.energie = ev.target.value; };
     $("q-ly").oninput = ev => { q.loyer = ev.target.value; };
     $("q-pas").oninput = ev => { q.pas = ev.target.value; };
     const fin = demo => {
       const th = parseEur(q.taux), fx = parseEur(q.fixes);
       Object.assign(st.p, {equipe: q.equipe, gf: q.gf, nr: q.nr, ech: q.ech, echNext: q.echNext || "", parts: q.parts || "", impConj: Math.max(0, parseEur(q.impConj) || 0), impAutres: Math.max(0, parseEur(q.impAutres) || 0), impCharges: Math.max(0, parseEur(q.impCharges) || 0), impCredits: Math.max(0, parseEur(q.impCredits) || 0), impCumul: Math.max(0, parseEur(q.impCumul) || 0), impCumulMois: q.impCumulMois || "", zone: q.zone, fixes: isFinite(fx) && fx > 0 ? fx : 0,
-        conduite: q.conduite, gratCET: q.gratCET, energie: Math.max(0, parseEur(q.energie) || 0), loyer: Math.max(0, parseEur(q.loyer) || 0), pas: Math.max(0, parseEur(q.pas) || 0)});
+        conduite: q.conduite, gratCET: q.gratCET, cetNov: q.cetNov, cetDec: q.cetDec, energie: Math.max(0, parseEur(q.energie) || 0), loyer: Math.max(0, parseEur(q.loyer) || 0), pas: Math.max(0, parseEur(q.pas) || 0)});
       if (isFinite(th) && th > 0) st.p.taux = th;
       st.ready = true; recompute(); if (demo) loadDemo(); save(); closeLayer(); refresh(); if (!first) toast("Profil enregistré");
     };
